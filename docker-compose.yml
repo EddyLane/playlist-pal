@@ -26,10 +26,10 @@ test:
   command: mix test # Run the entire test suite if no other command is specified
   environment:
     - MIX_ENV=test # That's key
-    - PORT=4001
+    - PORT=4002
     - PG_HOST=postgres
     - PG_USERNAME=postgres
-    - PG_DATABASE=elixir_elm_bootstrap
+    - PG_DATABASE=elixir_elm_bootstrap_test
     - PG_PASSWORD=postgres
   volumes_from:
     - web
