@@ -12,6 +12,9 @@ const entryPath = './ts/app.ts';
 
 module.exports = {
 
+    resolve: {
+        extensions: ['.js', '.ts', '.elm', '.css']
+    },
 
     context: path.resolve(__dirname, './web/static'),
     plugins: [

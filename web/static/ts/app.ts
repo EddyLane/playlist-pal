@@ -1,5 +1,4 @@
 import '../css/app.css';
-
-const Elm = require('../elm/Main.elm');
+const Elm = require('../elm/Main');
 
 Elm.Main.embed(document.getElementById('elm-root'));
