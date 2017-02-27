@@ -2,9 +2,9 @@ defmodule ElixirElmBootstrap.SessionController do
 
   use ElixirElmBootstrap.Web, :controller
   alias ElixirElmBootstrap.User
-
-  plug :scrub_params, "user" when action in [:create]
-  plug :action
+#
+#  plug :scrub_params, "user" when action in [:create]
+#  plug :action
 
   def new(conn, params) do
     changeset = User.login_changeset(%User{})

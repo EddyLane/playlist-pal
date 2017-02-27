@@ -13,8 +13,14 @@ defmodule ElixirElmBootstrap.Router do
     plug :accepts, ["json"]
   end
 
+
+  pipeline :browser_session do
+    plug Guardian.Plug.VerifySession
+    plug Guardian.Plug.LoadResource
+  end
+
   scope "/", ElixirElmBootstrap do
-    pipe_through :browser # Use the default browser stack
+    pipe_through [:browser, :browser_session] # Use the default browser stack
 
     get "/login", SessionController, :new, as: :login
     post "/login", SessionController, :create, as: :login
