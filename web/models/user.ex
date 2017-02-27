@@ -28,6 +28,33 @@ defmodule ElixirElmBootstrap.User do
     |> put_pass_hash()
   end
 
+  def login_changeset(model) do
+    model
+    |> cast(%{}, ~w())
+  end
+
+  def login_changeset(model, params) do
+    model
+    |> cast(params, ~w(username password), ~w())
+    |> validate_password
+  end
+
+  def valid_password?(nil, _), do: false
+  def valid_password?(_, nil), do: false
+  def valid_password?(password, crypted), do: Comeonin.Bcrypt.checkpw(password, crypted)
+
+  defp validate_password(changeset) do
+    case Ecto.Changeset.get_field(changeset, :password_hash) do
+      nil -> password_incorrect_error(changeset)
+      crypted -> validate_password(changeset, crypted)
+    end
+  end
+
+  defp validate_password(changeset, crypted) do
+    password = Ecto.Changeset.get_change(changeset, :password)
+    if valid_password?(password, crypted), do: changeset, else: password_incorrect_error(changeset)
+  end
+
   defp put_pass_hash(changeset) do
     case changeset do
       %Ecto.Changeset{valid?: true, changes: %{password: pass}} ->
@@ -36,5 +63,7 @@ defmodule ElixirElmBootstrap.User do
         changeset
     end
   end
+
+  defp password_incorrect_error(changeset), do: Ecto.Changeset.add_error(changeset, :password, "is incorrect")
 
 end
