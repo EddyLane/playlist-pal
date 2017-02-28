@@ -1,5 +1,9 @@
-import Html exposing (text)
+import Html exposing (..)
+import Html.Attributes exposing (class)
 
 main : Html.Html msg
 main =
-  text "Hello, World!. U good?. Holy fuck it works."
+  div [ class "jumbotron" ] [
+  h3 [] [ text "Hello from Elm and Phoenix!" ],
+  p [] [ text "You good?" ]
+  ]

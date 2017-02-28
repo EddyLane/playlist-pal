@@ -34,10 +34,10 @@
       <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
 
       <main role="main">
+        <div id="elm-root"></div>
         <%= render @view_module, @view_template, assigns %>
       </main>
 
-      <div id="elm-root"></div>
 
     </div> <!-- /container -->
 
