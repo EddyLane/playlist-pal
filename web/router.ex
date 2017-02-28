@@ -13,7 +13,6 @@ defmodule ElixirElmBootstrap.Router do
     plug :accepts, ["json"]
   end
 
-
   pipeline :browser_session do
     plug Guardian.Plug.VerifySession
     plug Guardian.Plug.LoadResource
@@ -24,6 +23,9 @@ defmodule ElixirElmBootstrap.Router do
 
     get "/login", SessionController, :new, as: :login
     post "/login", SessionController, :create, as: :login
+    delete "/logout", SessionController, :delete, as: :logout
+    get "/logout", SessionController, :delete, as: :logout
+
     get "/", PageController, :index
     resources "/users", UserController, only: [:new, :create]
 

@@ -1,4 +1,5 @@
 import '../css/app.css';
+import 'phoenix_html';
 
 const Elm = require('../elm/Main.elm');
 

@@ -15,7 +15,7 @@ defmodule ElixirElmBootstrap.UserController do
       case Repo.insert(changeset) do
         {:ok, user} ->
           conn
-#          |> Rumbl.Auth.login(user)
+          |> Guardian.Plug.sign_in(user, :token, perms: %{ default: Guardian.Permissions.max })
           |> put_flash(:info, "#{user.name} created!")
           |> redirect(to: page_path(conn, :index))
         {:error, changeset} ->

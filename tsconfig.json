@@ -9,6 +9,7 @@
     "typeRoots": [
       // add path to @types
       "node_modules/@types"
-    ]
+    ],
+    "allowJs": true
   }
 }

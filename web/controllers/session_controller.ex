@@ -2,9 +2,8 @@ defmodule ElixirElmBootstrap.SessionController do
 
   use ElixirElmBootstrap.Web, :controller
   alias ElixirElmBootstrap.User
-#
-#  plug :scrub_params, "user" when action in [:create]
-#  plug :action
+
+  plug :scrub_params, "user" when action in [:create]
 
   def new(conn, params) do
     changeset = User.login_changeset(%User{})
@@ -31,5 +30,12 @@ defmodule ElixirElmBootstrap.SessionController do
       render(conn, "new.html", changeset: changeset)
     end
   end
-  
+
+  def delete(conn, _params) do
+    Guardian.Plug.sign_out(conn)
+    |> put_flash(:info, "Logged out successfully.")
+    |> redirect(to: page_path(conn, :index))
+  end
+
+
 end
