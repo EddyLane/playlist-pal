@@ -18,6 +18,10 @@ defmodule ElixirElmBootstrap.Router do
     plug Guardian.Plug.LoadResource
   end
 
+  pipeline :authenticate_user do
+    plug Guardian.Plug.EnsureAuthenticated, handler: ElixirElmBootstrap.AuthErrorHandler
+  end
+
   scope "/", ElixirElmBootstrap do
     pipe_through [:browser, :browser_session] # Use the default browser stack
 
@@ -29,6 +33,11 @@ defmodule ElixirElmBootstrap.Router do
     get "/", PageController, :index
     resources "/users", UserController, only: [:new, :create]
 
+  end
+
+  scope "/manage", ElixirElmBootstrap do
+    pipe_through [:browser, :browser_session, :authenticate_user] # Use the default browser stack
+    resources "/users", UserController, only: [:show]
   end
 
   # Other scopes may use custom stacks.
