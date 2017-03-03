@@ -13,23 +13,31 @@
 
   <body>
     <div class="container">
-      <header class="header">
-        <nav role="navigation">
-          <ul class="nav nav-pills pull-right">
-            <li><a href="http://www.phoenixframework.org/docs">Get Started</a></li>
-          </ul>
-        </nav>
+
+      <div class="header">
+
+        <ol class="breadcrumb text-right">
+          <%= if Guardian.Plug.current_resource(@conn) do %>
+          <li><%= link(user(@conn).username, to: user_path(@conn, :show, user(@conn).username)) %></li>
+          <li><%= link("Logout", to: logout_path(@conn, :delete), method: :delete) %></li>
+          <% else %>
+          <li><%= link "Register", to: user_path(@conn, :new) %></li>
+          <li><%= link("Login", to: login_path(@conn, :create)) %></li>
+          <% end %>
+        </ol>
+
         <span class="logo"></span>
-      </header>
+
+      </div>
 
       <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
       <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
 
       <main role="main">
+        <div id="elm-root"></div>
         <%= render @view_module, @view_template, assigns %>
       </main>
 
-      <div id="elm-root"></div>
 
     </div> <!-- /container -->
 

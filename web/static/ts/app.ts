@@ -1,4 +1,6 @@
 import '../css/app.css';
-const Elm = require('../elm/Main');
+import 'phoenix_html';
+
+const Elm = require('../elm/Main.elm');
 
 Elm.Main.embed(document.getElementById('elm-root'));

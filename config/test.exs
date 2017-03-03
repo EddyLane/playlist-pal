@@ -12,8 +12,8 @@ config :logger, level: :warn
 # Configure your database
 config :elixir_elm_bootstrap, ElixirElmBootstrap.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "elixir_elm_bootstrap_test",
-  hostname: "localhost",
+  username: System.get_env("PG_USERNAME"),
+  password: System.get_env("PG_PASSWORD"),
+  hostname: System.get_env("PG_HOST"),
+  database: System.get_env("PG_DATABASE"),
   pool: Ecto.Adapters.SQL.Sandbox
