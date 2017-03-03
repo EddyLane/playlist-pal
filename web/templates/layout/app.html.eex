@@ -18,7 +18,7 @@
 
         <ol class="breadcrumb text-right">
           <%= if Guardian.Plug.current_resource(@conn) do %>
-          <li><%= link(user(@conn).username, to: user_path(@conn, :show, user(@conn).id)) %></li>
+          <li><%= link(user(@conn).username, to: user_path(@conn, :show, user(@conn).username)) %></li>
           <li><%= link("Logout", to: logout_path(@conn, :delete), method: :delete) %></li>
           <% else %>
           <li><%= link "Register", to: user_path(@conn, :new) %></li>

@@ -31,7 +31,7 @@ defmodule ElixirElmBootstrap.Router do
     get "/logout", SessionController, :delete, as: :logout
 
     get "/", PageController, :index
-    resources "/users", UserController, only: [:new, :create]
+    resources "/users", UserController, only: [:new, :create], param: "username"
 
   end
 

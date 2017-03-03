@@ -40,16 +40,16 @@ defmodule ElixirElmBootstrap.UserController do
 
     end
 
-    def show(conn, %{"id" => id}) do
+    def show(conn, %{"id" => username}) do
 
      authenticated_user = Guardian.Plug.current_resource(conn)
-     user = Repo.get(User, id)
+
+     user = Repo.get_by(User, username: username)
 
      if user.id != authenticated_user.id do
        unauthenticated(conn, :user_not_authed)
      end
 
-      user = Repo.get(User, id)
       render conn, "show.html", user: user
     end
 
