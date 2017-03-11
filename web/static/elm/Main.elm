@@ -1,21 +1,27 @@
 module Main exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, value)
+import Html.Attributes exposing (class, value, src)
+import Html.Events exposing (..)
 import Json.Decode as Decode
-import Result
+import Http
 
 
 -- MODEL
 
 
 type alias Model =
-    { search : String }
+    { search : String, results : List SpotifyTrack }
+
+
+model : Model
+model =
+    { search = "", results = [] }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { search = "Modest Mouse" }, Cmd.none )
+    ( model, Cmd.none )
 
 
 
@@ -25,6 +31,8 @@ init =
 type Msg
     = NoOp
     | Search String
+    | SearchResults (Result Http.Error (List SpotifyTrack))
+    | SearchUpdated String
 
 
 type alias SpotifyTrack =
@@ -43,23 +51,53 @@ type alias SpotifyImage =
 -- VIEW
 
 
+result : SpotifyTrack -> Html Msg
+result track =
+    let
+        image =
+            case List.head track.album.images of
+                Just imageObj ->
+                    (img [ src imageObj.url ] [])
+
+                Nothing ->
+                    div [] []
+    in
+        li [] [ image, text track.name ]
+
+
 view : Model -> Html Msg
 view model =
-    div
-        [ class "jumbotron" ]
-        [ h3 [] [ text "Hello from Elm and Phoenix!" ]
-        , p [] [ text "You good?" ]
-        , input [ class "form-input", value model.search ] []
-        , button [] [ text "Search" ]
-        ]
+    let
+        resultList =
+            ul [] (List.map result model.results)
+
+        search =
+            Search model.search
+    in
+        div
+            [ class "jumbotron" ]
+            [ h3 [] [ text "Hello from Elm and Phoenix!" ]
+            , p [] [ text "You good?" ]
+            , input [ class "form-input", value model.search, onInput SearchUpdated ] []
+            , button [ onClick search ] [ text "Search" ]
+            , resultList
+            ]
 
 
 
 -- UPDATE
---
---searchSpotify : Http.Request String
---searchSpotify =
---    Http.get "https://api.spotify.com/v1/search"
+
+
+searchSpotify : String -> Cmd Msg
+searchSpotify term =
+    let
+        url =
+            "https://api.spotify.com/v1/search?type=track&q=" ++ term
+
+        request =
+            Http.get url spotifyTrackResultDecoder
+    in
+        Http.send SearchResults request
 
 
 spotifyImageDecoder : Decode.Decoder SpotifyImage
@@ -89,17 +127,12 @@ spotifyTrackDecoder =
         (Decode.at [ "album" ] spotifyAlbumDecoder)
 
 
-spotifyItemResultDecoder : Decode.Decoder (List SpotifyTrack)
-spotifyItemResultDecoder =
-    Decode.map
-        (\results -> results)
-        (Decode.at [ "items" ] (Decode.list spotifyTrackDecoder))
-
 spotifyTrackResultDecoder : Decode.Decoder (List SpotifyTrack)
 spotifyTrackResultDecoder =
-    Decode.map
-        (\results -> results)
-        (Decode.at [ "tracks" ] spotifyItemResultDecoder)
+    Decode.list spotifyTrackDecoder
+        |> Decode.at [ "items" ]
+        |> Decode.at [ "tracks" ]
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -108,118 +141,25 @@ update msg model =
             ( model, Cmd.none )
 
         Search term ->
+            ( model, (searchSpotify term) )
+
+        SearchUpdated term ->
+            ( { model | search = term }, Cmd.none )
+
+        SearchResults (Ok results) ->
+            ( { model | results = results }
+            , Cmd.none
+            )
+
+        SearchResults (Err _) ->
             ( model, Cmd.none )
 
 
-jsonToDecode : String
-jsonToDecode =
-    """
-    {"name": "Eddy"}
-    """
-
-
-spotifyJsonToDecode : String
-spotifyJsonToDecode =
-    """
-{
-  "tracks" : {
-    "href" : "https://api.spotify.com/v1/search?query=Cupboard+Shaker&type=track&offset=0&limit=20",
-    "items" : [ {
-      "album" : {
-        "album_type" : "album",
-        "artists" : [ {
-          "external_urls" : {
-            "spotify" : "https://open.spotify.com/artist/1ng3xz2dyz57Z1WpnzM2G7"
-          },
-          "href" : "https://api.spotify.com/v1/artists/1ng3xz2dyz57Z1WpnzM2G7",
-          "id" : "1ng3xz2dyz57Z1WpnzM2G7",
-          "name" : "Pogo",
-          "type" : "artist",
-          "uri" : "spotify:artist:1ng3xz2dyz57Z1WpnzM2G7"
-        } ],
-        "available_markets" : [ "AD", "AR", "AT", "AU", "BE", "BG", "BO", "BR", "CA", "CH", "CL", "CO", "CR", "CY", "CZ", "DE", "DK", "DO", "EC", "EE", "ES", "FI", "FR", "GB", "GR", "GT", "HK", "HN", "HU", "ID", "IE", "IS", "IT", "JP", "LI", "LT", "LU", "LV", "MC", "MT", "MX", "MY", "NI", "NL", "NO", "NZ", "PA", "PE", "PH", "PL", "PT", "PY", "SE", "SG", "SK", "SV", "TR", "TW", "US", "UY" ],
-        "external_urls" : {
-          "spotify" : "https://open.spotify.com/album/2Hog1V8mdTWKhCYqI5paph"
-        },
-        "href" : "https://api.spotify.com/v1/albums/2Hog1V8mdTWKhCYqI5paph",
-        "id" : "2Hog1V8mdTWKhCYqI5paph",
-        "images" : [ {
-          "height" : 640,
-          "url" : "https://i.scdn.co/image/868668e90858ea60a9a3928a454eb934b8fc926f",
-          "width" : 640
-        }, {
-          "height" : 300,
-          "url" : "https://i.scdn.co/image/d5739a1afeaea5f64f85136fed61c4e7729e14ea",
-          "width" : 300
-        }, {
-          "height" : 64,
-          "url" : "https://i.scdn.co/image/25436af6e1a7e9af7040eee5f3fb4d019b4c821c",
-          "width" : 64
-        } ],
-        "name" : "Weightless",
-        "type" : "album",
-        "uri" : "spotify:album:2Hog1V8mdTWKhCYqI5paph"
-      },
-      "artists" : [ {
-        "external_urls" : {
-          "spotify" : "https://open.spotify.com/artist/1ng3xz2dyz57Z1WpnzM2G7"
-        },
-        "href" : "https://api.spotify.com/v1/artists/1ng3xz2dyz57Z1WpnzM2G7",
-        "id" : "1ng3xz2dyz57Z1WpnzM2G7",
-        "name" : "Pogo",
-        "type" : "artist",
-        "uri" : "spotify:artist:1ng3xz2dyz57Z1WpnzM2G7"
-      } ],
-      "available_markets" : [ "AD", "AR", "AT", "AU", "BE", "BG", "BO", "BR", "CA", "CH", "CL", "CO", "CR", "CY", "CZ", "DE", "DK", "DO", "EC", "EE", "ES", "FI", "FR", "GB", "GR", "GT", "HK", "HN", "HU", "ID", "IE", "IS", "IT", "JP", "LI", "LT", "LU", "LV", "MC", "MT", "MX", "MY", "NI", "NL", "NO", "NZ", "PA", "PE", "PH", "PL", "PT", "PY", "SE", "SG", "SK", "SV", "TR", "TW", "US", "UY" ],
-      "disc_number" : 1,
-      "duration_ms" : 203891,
-      "explicit" : false,
-      "external_ids" : {
-        "isrc" : "TCACW1622192"
-      },
-      "external_urls" : {
-        "spotify" : "https://open.spotify.com/track/0IK7mnSCms1ynDj2RwrBcr"
-      },
-      "href" : "https://api.spotify.com/v1/tracks/0IK7mnSCms1ynDj2RwrBcr",
-      "id" : "0IK7mnSCms1ynDj2RwrBcr",
-      "name" : "Cupboard Shaker",
-      "popularity" : 34,
-      "preview_url" : "https://p.scdn.co/mp3-preview/caea5ceaebb8728a15d13f2026877b12da57fe9e?cid=null",
-      "track_number" : 2,
-      "type" : "track",
-      "uri" : "spotify:track:0IK7mnSCms1ynDj2RwrBcr"
-    } ],
-    "limit" : 20,
-    "next" : null,
-    "offset" : 0,
-    "previous" : null,
-    "total" : 1
-  }
-}
-    """
-
-
-main : Html a
+main : Program Never Model Msg
 main =
-    case (Decode.decodeString spotifyTrackResultDecoder spotifyJsonToDecode) of
-        Result.Ok list ->
-            case List.head list of
-                Just firstResult ->
-                    text firstResult.name
-                Nothing ->
-                    text "nope"
-
-        Result.Err err ->
-            text "no"
-
-
-
---
---main : Program Never Model Msg
---main =
---    program
---        { init = init
---        , view = view
---        , update = update
---        , subscriptions = (always Sub.none)
---        }
+    program
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = (always Sub.none)
+        }
