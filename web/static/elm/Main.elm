@@ -12,28 +12,34 @@ import Time exposing (Time)
 import Json.Encode
 import Json.Decode exposing (decodeValue)
 
+
 -- MODEL
 
 
 type alias Model =
-    { search : String, results : List SpotifyTrack, user : User, token : String, error: Maybe String, currentTime : Time }
+    { search : String, results : List SpotifyTrack, user : User, token : String, error : Maybe String, currentTime : Time }
+
 
 type alias User =
-    { username: String, name: String }
+    { username : String, name : String }
+
 
 type alias Flags =
-    { user: User, token: String }
+    { user : User, token : String }
+
 
 type ConnectionStatus
     = Connected
     | Disconnected
     | ScheduledReconnect { time : Time }
 
+
 type State
     = JoiningLobby
     | JoinedLobby
     | LeavingLobby
     | LeftLobby
+
 
 type Msg
     = NoOp
@@ -45,8 +51,9 @@ type Msg
     | UpdateState State
     | UserConnected Json.Encode.Value
 
+
 type alias SpotifyTrack =
-    { name : String, href : String, id : String, album : SpotifyAlbum }
+    { name : String, href : String, id : String, album : SpotifyAlbum, artists : List String }
 
 
 type alias SpotifyAlbum =
@@ -56,9 +63,10 @@ type alias SpotifyAlbum =
 type alias SpotifyImage =
     { height : Int, width : Int, url : String }
 
+
 model : Model
 model =
-    { search = "", results = [], user = { username = "", name = "" }, token = "", error = Nothing, currentTime = 0}
+    { search = "", results = [], user = { username = "", name = "" }, token = "", error = Nothing, currentTime = 0 }
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -91,17 +99,22 @@ update msg model =
 
         SearchResults (Err err) ->
             let
-                message = case err of
-                    Http.Timeout ->
-                        "Timeout"
-                    Http.BadUrl _ ->
-                        "BadUrl"
-                    Http.NetworkError ->
-                        "NetworkError"
-                    Http.BadStatus _ ->
-                        "BadStatus"
-                    Http.BadPayload _ _ ->
-                        "BadPayload"
+                message =
+                    case err of
+                        Http.Timeout ->
+                            "Timeout"
+
+                        Http.BadUrl _ ->
+                            "BadUrl"
+
+                        Http.NetworkError ->
+                            "NetworkError"
+
+                        Http.BadStatus _ ->
+                            "BadStatus"
+
+                        Http.BadPayload _ _ ->
+                            "BadPayload"
             in
                 ( { model | error = Just message }
                 , Cmd.none
@@ -122,14 +135,18 @@ update msg model =
 
         UserConnected user ->
             let
-                u = case decodeValue userDecoder user of
-                    Ok newRecord -> newRecord
-                    Err _ -> model.user
+                u =
+                    case decodeValue userDecoder user of
+                        Ok newRecord ->
+                            newRecord
 
+                        Err _ ->
+                            model.user
             in
                 ( { model | user = u }
                 , Cmd.none
                 )
+
 
 
 -- MESSAGES
@@ -138,10 +155,15 @@ update msg model =
 lobbySocket : String
 lobbySocket =
     "ws://localhost:4000/socket/websocket"
+
+
+
 --
 --
 --{-| Initialize a socket with the default heartbeat intervall of 30 seconds
 ---}
+
+
 socket : String -> Socket Msg
 socket accessToken =
     Socket.init lobbySocket
@@ -153,16 +175,8 @@ socket accessToken =
 lobby : Channel Msg
 lobby =
     Channel.init "me"
---        |> Channel.withPayload (JE.object [ ( "user_name", JE.string userName ) ])
         |> Channel.onJoin (\user -> UserConnected user)
---        |> Channel.onJoinError (\_ -> UserNameTaken)
---        |> Channel.onLeave (\_ -> UpdateState LeftLobby)
---        |> Channel.on "new_msg" NewMsg
---        |> Channel.on "user_joined" UserJoinedMsg
---        |> Channel.on "user_left" UserLeftMsg
         |> Channel.withDebug
-
-
 
 
 
@@ -179,15 +193,25 @@ result track =
 
                 Nothing ->
                     div [] []
+
+        tableRow =
+            tr [] [ td [] [ image ], td [] [ text track.name ], td [] [ text (String.join ", " track.artists) ] ]
     in
-        li [] [ image, text track.name ]
+        tableRow
 
 
 view : Model -> Html Msg
 view model =
     let
         resultList =
-            ul [] (List.map result model.results)
+            table []
+                [ tbody []
+                    (List.map result model.results)
+                , thead
+                    []
+                    [ tr [] [ th [] [ text "Image" ], th [] [ text "Name" ], th [] [ text "Artist" ] ]
+                    ]
+                ]
 
         search =
             Search model.search
@@ -233,16 +257,18 @@ searchSpotify term =
     in
         Http.send SearchResults request
 
+
 userDecoder : Decode.Decoder User
 userDecoder =
     Decode.map2
         User
-        (Decode.at ["username"] Decode.string)
-        (Decode.at ["name"] Decode.string)
+        (Decode.at [ "username" ] Decode.string)
+        (Decode.at [ "name" ] Decode.string)
+
 
 spotifyTrackDecoder : Decode.Decoder SpotifyTrack
 spotifyTrackDecoder =
-    Decode.map4
+    Decode.map5
         SpotifyTrack
         (Decode.at [ "name" ] Decode.string)
         (Decode.at [ "href" ] Decode.string)
@@ -263,13 +289,21 @@ spotifyTrackDecoder =
                 )
             )
         )
+        (Decode.at [ "artists" ]
+            (Decode.list
+                (Decode.at [ "name" ] Decode.string)
+            )
+        )
+
 
 phoenixSubscription model =
     Phoenix.connect (socket model.token) [ lobby ]
 
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch [ phoenixSubscription model, Time.every Time.second Tick ]
+
 
 main : Program Flags Model Msg
 main =
