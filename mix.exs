@@ -19,7 +19,7 @@ defmodule ElixirElmBootstrap.Mixfile do
   def application do
     [mod: {ElixirElmBootstrap, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex, :comeonin]]
+                    :phoenix_ecto, :postgrex, :comeonin, :poison]]
   end
 
   # Specifies which paths to compile per environment.
@@ -39,7 +39,8 @@ defmodule ElixirElmBootstrap.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:guardian, "~> 0.14"},
-     {:comeonin, "~> 2.0"}]
+     {:comeonin, "~> 2.0"},
+     {:poison, "~> 2.0"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

@@ -1,6 +1,7 @@
 defmodule ElixirElmBootstrap.User do
 
   use ElixirElmBootstrap.Web, :model
+  @derive {Poison.Encoder, only: [:name, :username]}
 
   schema "users" do
     field :name, :string

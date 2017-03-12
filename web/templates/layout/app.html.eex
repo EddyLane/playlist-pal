@@ -41,6 +41,12 @@
 
     </div> <!-- /container -->
 
+    <script>
+      <%= if Guardian.Plug.current_resource(@conn) do %>
+        window.user = <%= {:safe, user_json(@conn) } %>;
+      <% end %>
+    </script>
+
     <%= if Mix.env == :dev do %>
     <script src='http://localhost:4001/app.bundle.js'></script>
     <% else %>
