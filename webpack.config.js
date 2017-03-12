@@ -14,7 +14,8 @@ module.exports = {
     resolve: {
         extensions: ['.js', '.ts', '.elm', '.css'],
         alias: {
-            phoenix_html: '../../../deps/phoenix_html/priv/static/phoenix_html'
+            phoenix_html: '../../../deps/phoenix_html/priv/static/phoenix_html',
+            phoenix: '../../../deps/phoenix/priv/static/phoenix'
         }
     },
     context: path.resolve(__dirname, './web/static'),

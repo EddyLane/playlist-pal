@@ -5,6 +5,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^7.0.5",
+    "@types/phoenix": "^0.0.4",
     "awesome-typescript-loader": "^3.0.8",
     "css-loader": "^0.26.2",
     "elm": "^0.18.0",

@@ -42,8 +42,9 @@
     </div> <!-- /container -->
 
     <script>
-      <%= if Guardian.Plug.current_resource(@conn) do %>
+      <%= if current_resource(@conn) do %>
         window.user = <%= {:safe, user_json(@conn) } %>;
+        window.token = "<%= {:safe, current_token(@conn) } %>";
       <% end %>
     </script>
 

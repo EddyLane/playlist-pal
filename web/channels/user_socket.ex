@@ -1,8 +1,9 @@
 defmodule ElixirElmBootstrap.UserSocket do
   use Phoenix.Socket
+  use Guardian.Phoenix.Socket
 
   ## Channels
-  # channel "room:*", ElixirElmBootstrap.RoomChannel
+  channel "me", ElixirElmBootstrap.UserChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
@@ -19,8 +20,17 @@ defmodule ElixirElmBootstrap.UserSocket do
   #
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
-  def connect(_params, socket) do
-    {:ok, socket}
+  def connect(%{"guardian_token" => token}, socket) do
+    case sign_in(socket, token) do
+      {:ok, authed_socket, _guardian_params} ->
+        {:ok, %{message: "Joined"}, authed_socket}
+      {:error, reason} ->
+         :error
+    end
+  end
+
+  def connect(_params, _socket) do
+    :error
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
@@ -33,5 +43,10 @@ defmodule ElixirElmBootstrap.UserSocket do
   #     ElixirElmBootstrap.Endpoint.broadcast("users_socket:#{user.id}", "disconnect", %{})
   #
   # Returning `nil` makes this socket anonymous.
-  def id(_socket), do: nil
+
+  def id(socket) do
+    user = current_resource(socket)
+    "user_socket:#{user.id}"
+   end
+
 end
