@@ -4,6 +4,7 @@ defmodule ElixirElmBootstrap.UserSocket do
 
   ## Channels
   channel "me", ElixirElmBootstrap.UserChannel
+  channel "tracks", ElixirElmBootstrap.TrackChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket

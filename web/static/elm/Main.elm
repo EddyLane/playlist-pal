@@ -178,7 +178,10 @@ lobby =
         |> Channel.onJoin (\user -> UserConnected user)
         |> Channel.withDebug
 
-
+tracks : Channel Msg
+tracks =
+    Channel.init "tracks"
+        |> Channel.withDebug
 
 -- VIEW
 
@@ -297,7 +300,7 @@ spotifyTrackDecoder =
 
 
 phoenixSubscription model =
-    Phoenix.connect (socket model.token) [ lobby ]
+    Phoenix.connect (socket model.token) [ lobby, tracks ]
 
 
 subscriptions : Model -> Sub Msg
