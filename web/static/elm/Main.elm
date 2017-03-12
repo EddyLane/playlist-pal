@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, value, src)
+import Html.Attributes exposing (class, value, src, style)
 import Html.Events exposing (..)
 import Json.Decode as Decode
 import Http
@@ -11,19 +11,23 @@ import Http
 
 
 type alias Model =
-    { search : String, results : List SpotifyTrack }
+    { search : String, results : List SpotifyTrack, user : User }
+
+type alias User =
+    { username: String, name: String }
+
+type alias Flags =
+    { user: User }
 
 
 model : Model
 model =
-    { search = "", results = [] }
+    { search = "", results = [], user = { username = "", name = "" } }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( model, Cmd.none )
-
-
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    ( { model | user = flags.user }, Cmd.none )
 
 -- MESSAGES
 
@@ -57,7 +61,7 @@ result track =
         image =
             case List.head track.album.images of
                 Just imageObj ->
-                    (img [ src imageObj.url ] [])
+                    (img [ style [ ( "width", "100px" ) ], src imageObj.url ] [])
 
                 Nothing ->
                     div [] []
@@ -73,11 +77,14 @@ view model =
 
         search =
             Search model.search
+
+        greeting =
+            "How are you " ++ model.user.name ++ "?"
     in
         div
             [ class "jumbotron" ]
             [ h3 [] [ text "Hello from Elm and Phoenix!" ]
-            , p [] [ text "You good?" ]
+            , p [] [ text greeting ]
             , input [ class "form-input", value model.search, onInput SearchUpdated ] []
             , button [ onClick search ] [ text "Search" ]
             , resultList
@@ -92,29 +99,16 @@ searchSpotify : String -> Cmd Msg
 searchSpotify term =
     let
         url =
-            "https://api.spotify.com/v1/search?type=track&q=" ++ term
+            "https://api.spotify.com/v1/search?type=track&q=" ++ Http.encodeUri (term)
 
         request =
-            Http.get url spotifyTrackResultDecoder
+            Http.get url
+                (Decode.list spotifyTrackDecoder
+                    |> Decode.at [ "items" ]
+                    |> Decode.at [ "tracks" ]
+                )
     in
         Http.send SearchResults request
-
-
-spotifyImageDecoder : Decode.Decoder SpotifyImage
-spotifyImageDecoder =
-    Decode.map3
-        SpotifyImage
-        (Decode.at [ "height" ] Decode.int)
-        (Decode.at [ "width" ] Decode.int)
-        (Decode.at [ "url" ] Decode.string)
-
-
-spotifyAlbumDecoder : Decode.Decoder SpotifyAlbum
-spotifyAlbumDecoder =
-    Decode.map2
-        SpotifyAlbum
-        (Decode.at [ "name" ] Decode.string)
-        (Decode.at [ "images" ] (Decode.list spotifyImageDecoder))
 
 
 spotifyTrackDecoder : Decode.Decoder SpotifyTrack
@@ -124,14 +118,22 @@ spotifyTrackDecoder =
         (Decode.at [ "name" ] Decode.string)
         (Decode.at [ "href" ] Decode.string)
         (Decode.at [ "id" ] Decode.string)
-        (Decode.at [ "album" ] spotifyAlbumDecoder)
-
-
-spotifyTrackResultDecoder : Decode.Decoder (List SpotifyTrack)
-spotifyTrackResultDecoder =
-    Decode.list spotifyTrackDecoder
-        |> Decode.at [ "items" ]
-        |> Decode.at [ "tracks" ]
+        (Decode.at [ "album" ]
+            (Decode.map2
+                SpotifyAlbum
+                (Decode.at [ "name" ] Decode.string)
+                (Decode.at [ "images" ]
+                    (Decode.list
+                        (Decode.map3
+                            SpotifyImage
+                            (Decode.at [ "height" ] Decode.int)
+                            (Decode.at [ "width" ] Decode.int)
+                            (Decode.at [ "url" ] Decode.string)
+                        )
+                    )
+                )
+            )
+        )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -155,9 +157,9 @@ update msg model =
             ( model, Cmd.none )
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
-    program
+    programWithFlags
         { init = init
         , view = view
         , update = update
