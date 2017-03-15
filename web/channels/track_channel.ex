@@ -3,17 +3,16 @@ defmodule ElixirElmBootstrap.TrackChannel do
   use ElixirElmBootstrap.Web, :channel
   use Guardian.Phoenix.Socket, only: [:current_resource/1]
 
-  def join("tracks", params, socket) do
-    user = current_resource(socket)
+  def join("tracks", _, socket) do
 
-#    send(self, :after_join)
-
-    {:ok, user, socket}
+    send(self, :after_join)
+    {:ok, socket}
   end
 
   def handle_info(:after_join, socket) do
-    push socket, "new_track", [%{
-         name: "name",
+
+    push socket, "new_track", %{
+         name: "Float on",
          href: "href",
          id: "id",
          album: %{
@@ -21,8 +20,10 @@ defmodule ElixirElmBootstrap.TrackChannel do
              images: []
          },
          artists: []
-     }]
+     }
+
      {:noreply, socket}
+
   end
 
   def handle_in("new_track", params, socket) do

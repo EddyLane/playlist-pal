@@ -17,7 +17,7 @@ import Json.Decode exposing (decodeValue)
 
 
 type alias Model =
-    { search : String, results : List SpotifyTrack, user : User, token : String, error : Maybe String, currentTime : Time }
+    { search : String, results : List SpotifyTrack, user : Maybe User, token : String, error : Maybe String, currentTime : Time, tracks : List SpotifyTrack }
 
 
 type alias User =
@@ -25,7 +25,7 @@ type alias User =
 
 
 type alias Flags =
-    { user : User, token : String }
+    { token : String }
 
 
 type ConnectionStatus
@@ -50,6 +50,7 @@ type Msg
     | Tick Time
     | UpdateState State
     | UserConnected Json.Encode.Value
+    | NewTrack Json.Encode.Value
 
 
 type alias SpotifyTrack =
@@ -66,12 +67,12 @@ type alias SpotifyImage =
 
 model : Model
 model =
-    { search = "", results = [], user = { username = "", name = "" }, token = "", error = Nothing, currentTime = 0 }
+    { search = "", results = [], user = Nothing, token = "", error = Nothing, currentTime = 0, tracks = [] }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { model | user = flags.user, token = flags.token }, Cmd.none )
+    ( { model | token = flags.token }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -138,14 +139,29 @@ update msg model =
                 u =
                     case decodeValue userDecoder user of
                         Ok newRecord ->
-                            newRecord
+                            Just newRecord
 
                         Err _ ->
-                            model.user
+                            Nothing
             in
                 ( { model | user = u }
                 , Cmd.none
                 )
+
+        NewTrack track ->
+            let
+                updatedTracks =
+                    case decodeValue spotifyTrackDecoder track of
+                        Ok newTrack ->
+                            newTrack :: model.tracks
+
+                        Err _ ->
+                            model.tracks
+            in
+                ( { model | tracks = updatedTracks }
+                , Cmd.none
+                )
+
 
 
 
@@ -178,10 +194,14 @@ lobby =
         |> Channel.onJoin (\user -> UserConnected user)
         |> Channel.withDebug
 
+
 tracks : Channel Msg
 tracks =
     Channel.init "tracks"
+        |> Channel.on "new_track" NewTrack
         |> Channel.withDebug
+
+
 
 -- VIEW
 
@@ -220,7 +240,12 @@ view model =
             Search model.search
 
         greeting =
-            "How are you " ++ model.user.name ++ "?"
+            case model.user of
+                Just user ->
+                    "How are you " ++ user.name ++ "?"
+
+                Nothing ->
+                    ""
 
         error =
             case model.error of
@@ -229,6 +254,12 @@ view model =
 
                 Nothing ->
                     div [] []
+
+        trackList =
+            table []
+                [ tbody []
+                    (List.map (\track -> (tr [] [ td [] [ text track.name ] ])) model.tracks)
+                ]
     in
         div
             [ class "jumbotron" ]
@@ -238,6 +269,7 @@ view model =
             , input [ class "form-input", value model.search, onInput SearchUpdated ] []
             , button [ onClick search ] [ text "Search" ]
             , resultList
+            , trackList
             ]
 
 
@@ -299,6 +331,7 @@ spotifyTrackDecoder =
         )
 
 
+phoenixSubscription : Model -> Sub Msg
 phoenixSubscription model =
     Phoenix.connect (socket model.token) [ lobby, tracks ]
 

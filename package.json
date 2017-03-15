@@ -11,10 +11,14 @@
     "elm": "^0.18.0",
     "elm-hot-loader": "^0.5.4",
     "elm-webpack-loader": "^4.2.0",
-    "style-loader": "^0.13.2",
+    "style-loader": "^0.14.0",
     "typescript": "^2.2.1",
     "webpack": "^2.2.1",
     "webpack-dev-server": "^2.4.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "bootstrap-sass": "^3.3.7",
+    "node-sass": "^4.5.0",
+    "sass-loader": "^6.0.3"
+  }
 }

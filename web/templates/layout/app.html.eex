@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,50 +9,58 @@
 
     <title>Hello ElixirElmBootstrap!</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
-  </head>
+</head>
 
-  <body>
-    <div class="container">
+<body>
 
-      <div class="header">
+<div class="container">
 
-        <ol class="breadcrumb text-right">
-          <%= if Guardian.Plug.current_resource(@conn) do %>
-          <li><%= link(user(@conn).username, to: user_path(@conn, :show, user(@conn).username)) %></li>
-          <li><%= link("Logout", to: logout_path(@conn, :delete), method: :delete) %></li>
-          <% else %>
-          <li><%= link "Register", to: user_path(@conn, :new) %></li>
-          <li><%= link("Login", to: login_path(@conn, :create)) %></li>
-          <% end %>
-        </ol>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
 
-        <span class="logo"></span>
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Elm Phoenix</a>
+            </div>
 
-      </div>
+            <div class="navbar-collapse collapse">
+                <ul class="navbar navbar-nav">
+                    <%= if Guardian.Plug.current_resource(@conn) do %>
+                    <li><%= link(user(@conn).username, to: user_path(@conn, :show, user(@conn).username)) %></li>
+                    <li><%= link("Logout", to: logout_path(@conn, :delete), method: :delete) %></li>
+                    <% else %>
+                    <li><%= link "Register", to: user_path(@conn, :new) %></li>
+                    <li><%= link("Login", to: login_path(@conn, :create)) %></li>
+                    <% end %>
+                </ul>
+            </div>
 
-      <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-      <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
 
-      <main role="main">
+        </div>
+
+    </nav>
+
+    <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
+    <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+
+    <main role="main">
         <div id="elm-root"></div>
         <%= render @view_module, @view_template, assigns %>
-      </main>
+    </main>
 
 
-    </div> <!-- /container -->
+</div> <!-- /container -->
 
-    <script>
-      <%= if current_resource(@conn) do %>
-        window.user = <%= {:safe, user_json(@conn) } %>;
-        window.token = "<%= {:safe, current_token(@conn) } %>";
-      <% end %>
-    </script>
-
-    <%= if Mix.env == :dev do %>
-    <script src='http://localhost:4001/app.bundle.js'></script>
-    <% else %>
-    <script src="<%= static_path(@conn, "/js/bundle.js") %>"></script>
+<script>
+    <%= if current_resource(@conn) do %>
+    window.token = "<%= {:safe, current_token(@conn) } %>";
     <% end %>
+</script>
 
-  </body>
+<%= if Mix.env == :dev do %>
+<script src='http://localhost:4001/app.bundle.js'></script>
+<% else %>
+<script src="<%= static_path(@conn, "/js/bundle.js") %>"></script>
+<% end %>
+
+</body>
 </html>
