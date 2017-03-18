@@ -24,6 +24,8 @@ RUN apt-get install -y -q nodejs
 RUN curl -o- -L https://yarnpkg.com/install.sh | bash
 RUN $HOME/.yarn/bin/yarn install -y
 
+RUN apt-get install -y inotify-tools
+
 # Install elm
 RUN npm install -g elm
 

@@ -222,12 +222,11 @@ result track =
     in
         tableRow
 
-
 view : Model -> Html Msg
 view model =
     let
         resultList =
-            table []
+            table [ class "table table-striped"]
                 [ tbody []
                     (List.map result model.results)
                 , thead
@@ -256,7 +255,7 @@ view model =
                     div [] []
 
         trackList =
-            table []
+            table [ class "table table-striped" ]
                 [ tbody []
                     (List.map (\track -> (tr [] [ td [] [ text track.name ] ])) model.tracks)
                 ]
@@ -269,7 +268,7 @@ view model =
             , input [ class "form-input", value model.search, onInput SearchUpdated ] []
             , button [ onClick search ] [ text "Search" ]
             , resultList
-            , trackList
+            , div [] [ text "hi" ]
             ]
 
 

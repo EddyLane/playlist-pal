@@ -5,6 +5,10 @@ const ELM_ELEMENT_ID = 'elm-root';
 
 const Elm = require('../elm/Main.elm');
 
-Elm.Main.embed(document.getElementById(ELM_ELEMENT_ID), {
-    token: window.token || ''
-});
+const targetElement = document.getElementById(ELM_ELEMENT_ID);
+
+if (targetElement) {
+    Elm.Main.embed(targetElement, {
+        token: window.token || ''
+    });
+}
