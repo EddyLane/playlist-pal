@@ -1,13 +1,14 @@
 module Main exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, value, src, style)
+import Html.Attributes exposing (class, value, src, style, type_, placeholder, id, for)
 import Html.Events exposing (..)
 import Json.Decode as Decode
 import Http
 import Phoenix
 import Phoenix.Channel as Channel exposing (Channel)
 import Phoenix.Socket as Socket exposing (Socket)
+import Phoenix.Push as Push
 import Time exposing (Time)
 import Json.Encode
 import Json.Decode exposing (decodeValue)
@@ -51,6 +52,7 @@ type Msg
     | UpdateState State
     | UserConnected Json.Encode.Value
     | NewTrack Json.Encode.Value
+    | AddTrack SpotifyTrack
 
 
 type alias SpotifyTrack =
@@ -90,7 +92,7 @@ update msg model =
 
         SearchUpdated term ->
             ( { model | search = term }
-            , Cmd.none
+            , (searchSpotify term)
             )
 
         SearchResults (Ok results) ->
@@ -162,6 +164,15 @@ update msg model =
                 , Cmd.none
                 )
 
+        AddTrack track ->
+            let
+                push =
+                    Push.init "tracks" "new_track"
+                        |> Push.withPayload (Json.Encode.string track.id)
+            in
+                ( model
+                , Phoenix.push lobbySocket push
+                )
 
 
 
@@ -184,7 +195,7 @@ socket : String -> Socket Msg
 socket accessToken =
     Socket.init lobbySocket
         |> Socket.withParams [ ( "guardian_token", accessToken ) ]
-        |> Socket.heartbeatIntervallSeconds 5
+        |> Socket.heartbeatIntervallSeconds 20
         |> Socket.withDebug
 
 
@@ -218,20 +229,26 @@ result track =
                     div [] []
 
         tableRow =
-            tr [] [ td [] [ image ], td [] [ text track.name ], td [] [ text (String.join ", " track.artists) ] ]
+            tr []
+                [ td [] [ image ]
+                , td [] [ text track.name ]
+                , td [] [ text (String.join ", " track.artists) ]
+                , td [] [ button [ onClick (AddTrack track) ] [ text "+" ] ]
+                ]
     in
         tableRow
+
 
 view : Model -> Html Msg
 view model =
     let
         resultList =
-            table [ class "table table-striped"]
+            table [ class "table table-striped" ]
                 [ tbody []
                     (List.map result model.results)
                 , thead
                     []
-                    [ tr [] [ th [] [ text "Image" ], th [] [ text "Name" ], th [] [ text "Artist" ] ]
+                    [ tr [] [ th [] [ text "Image" ], th [] [ text "Name" ], th [] [ text "Artist" ], th [] [] ]
                     ]
                 ]
 
@@ -259,20 +276,44 @@ view model =
                 [ tbody []
                     (List.map (\track -> (tr [] [ td [] [ text track.name ] ])) model.tracks)
                 ]
+
+        rightPlaylist =
+            ul [ class "list-group" ]
+                [ li [ class "list-group-item active" ] [ text "Recently added..." ]
+                , li [ class "list-group-item list-group-item-action" ] [ text "Two" ]
+                , li [ class "list-group-item list-group-item-action" ] [ text "Three" ]
+                ]
+
     in
-        div
-            [ class "jumbotron" ]
-            [ h3 [] [ text "Hello from Elm and Phoenix!" ]
-            , error
-            , p [] [ text greeting ]
-            , input [ class "form-input", value model.search, onInput SearchUpdated ] []
-            , button [ onClick search ] [ text "Search" ]
-            , resultList
-            , div [] [ text "hi" ]
+        div [ class "container" ]
+            [ div [ class "row" ]
+                [ div [ class "col-sm-9" ]
+                    [ form []
+                        [ div [ class "form-group row" ]
+                            [ label [ for "search", class "col-sm-2 col-form-label col-form-label-lg" ] [ text "Track" ]
+                            , div [ class "col-sm-10" ]
+                                [ input [ type_ "search", class "form-control form-control-lg", id "search", placeholder "Search for track...", value model.search, onInput SearchUpdated ] []
+                                ]
+                            ]
+                        ]
+                    , resultList
+                    ]
+                , div [ class "col-sm-3" ] [ rightPlaylist ]
+                ]
             ]
 
 
 
+--        div
+--            [ class "jumbotron" ]
+--            [ h3 [] [ text "Hello from Elm and Phoenix!" ]
+--            , error
+--            , p [] [ text greeting ]
+--            , input [ class "form-input", value model.search, onInput SearchUpdated ] []
+--            , button [ onClick search ] [ text "Search" ]
+--            , resultList
+--            , div [] [ text "hi" ]
+--            ]
 -- UPDATE
 
 

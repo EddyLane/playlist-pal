@@ -4,12 +4,14 @@ defmodule ElixirElmBootstrap.PageController do
   import Guardian.Plug
 
   def index(conn, _params) do
-
     case current_resource(conn) do
       nil -> render conn, "index.html"
-      user -> redirect conn, to: user_path(conn, :show, user.username)
+      user -> redirect conn, to: "/app"
     end
+  end
 
+  def app(conn, _params) do
+    render conn, "app.html"
   end
 
 

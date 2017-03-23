@@ -40,6 +40,11 @@ defmodule ElixirElmBootstrap.Router do
     resources "/users", UserController, only: [:show]
   end
 
+  scope "/", ElixirElmBootstrap do
+    pipe_through [:browser, :browser_session, :authenticate_user] # Use the default browser stack
+    get "/app", PageController, :app
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", ElixirElmBootstrap do
   #   pipe_through :api

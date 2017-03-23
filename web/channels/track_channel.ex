@@ -42,7 +42,7 @@ defmodule ElixirElmBootstrap.TrackChannel do
 #      {:ok, track} L
 #    end
 #
-#    {:reply, :ok, socket}
+    {:reply, :ok, socket}
   end
 
 end
