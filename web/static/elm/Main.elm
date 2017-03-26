@@ -9,16 +9,24 @@ import Phoenix
 import Phoenix.Channel as Channel exposing (Channel)
 import Phoenix.Socket as Socket exposing (Socket)
 import Phoenix.Push as Push
-import Time exposing (Time)
+import Time exposing (Time, second)
 import Json.Encode
 import Json.Decode exposing (decodeValue)
-
+import Debounce exposing (Debounce)
 
 -- MODEL
 
 
 type alias Model =
-    { search : String, results : List SpotifyTrack, user : Maybe User, token : String, error : Maybe String, currentTime : Time, tracks : List SpotifyTrack }
+    { search : String
+    , results : List SpotifyTrack
+    , user : Maybe User
+    , token : String
+    , error : Maybe String
+    , currentTime : Time
+    , tracks : List SpotifyTrack
+    , debounce : Debounce String
+    }
 
 
 type alias User =
@@ -53,6 +61,7 @@ type Msg
     | UserConnected Json.Encode.Value
     | NewTrack Json.Encode.Value
     | AddTrack SpotifyTrack
+    | DebounceMsg Debounce.Msg
 
 
 type alias SpotifyTrack =
@@ -69,12 +78,28 @@ type alias SpotifyImage =
 
 model : Model
 model =
-    { search = "", results = [], user = Nothing, token = "", error = Nothing, currentTime = 0, tracks = [] }
+    { search = ""
+    , results = []
+    , user = Nothing
+    , token = ""
+    , error = Nothing
+    , currentTime = 0
+    , tracks = []
+    , debounce = Debounce.init
+    }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { model | token = flags.token }, Cmd.none )
+
+-- This defines how the debouncer should work.
+-- Choose the strategy for your use case.
+debounceConfig : Debounce.Config Msg
+debounceConfig =
+  { strategy = Debounce.later (1 * second)
+  , transform = DebounceMsg
+  }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -91,9 +116,12 @@ update msg model =
             )
 
         SearchUpdated term ->
-            ( { model | search = term }
-            , (searchSpotify term)
-            )
+            let
+                (debounce, cmd) = Debounce.push debounceConfig term model.debounce
+            in
+                ( { model | search = term, debounce = debounce }
+                , cmd
+                )
 
         SearchResults (Ok results) ->
             ( { model | results = results, error = Nothing }
@@ -174,7 +202,16 @@ update msg model =
                 , Phoenix.push lobbySocket push
                 )
 
-
+        DebounceMsg msg ->
+          let
+            (debounce, cmd) =
+              Debounce.update
+                debounceConfig
+                (Debounce.takeLast searchSpotify)
+                msg
+                model.debounce
+          in
+            { model | debounce = debounce } ! [ cmd ]
 
 -- MESSAGES
 
