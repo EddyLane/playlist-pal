@@ -23,7 +23,7 @@ import Types exposing (..)
 
 model : Model
 model =
-    { search = ""
+    { search = "ddf"
     , results = []
     , user = Nothing
     , token = ""

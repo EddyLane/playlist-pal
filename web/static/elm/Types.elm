@@ -1,17 +1,8 @@
 module Types exposing (..)
 
-import Html exposing (..)
-import Html.Attributes exposing (class, value, src, style, type_, placeholder, id, for)
-import Html.Events exposing (..)
-import Json.Decode as Decode
 import Http
-import Phoenix
-import Phoenix.Channel as Channel exposing (Channel)
-import Phoenix.Socket as Socket exposing (Socket)
-import Phoenix.Push as Push
 import Time exposing (Time, second)
 import Json.Encode
-import Json.Decode exposing (decodeValue)
 import Debounce exposing (Debounce)
 
 type alias Model =
