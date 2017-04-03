@@ -11,7 +11,7 @@ config :elixir_elm_bootstrap, ElixirElmBootstrap.Endpoint,
   code_reloader: true,
   check_origin: false,
   watchers: [
-    node: ["webpack.devserver.js"]
+    node: ["./node_modules/.bin/webpack-dev-server", "--host", "0.0.0.0", "--port", "4001"]
   ]
 
 

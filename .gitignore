@@ -1,3 +1,5 @@
+web/static/dist
+
 # App artifacts
 /_build
 /db
