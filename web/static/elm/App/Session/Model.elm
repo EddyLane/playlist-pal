@@ -3,11 +3,13 @@ module App.Session.Model exposing (..)
 import Json.Decode as Decode exposing (decodeValue)
 
 type alias User =
-    { username : String, name : String }
+    { username : String
+    , name : String
+    }
 
 type alias Model =
     { user : Maybe User
-    , token: String
+    , token : String
     }
 
 userDecoder : Decode.Decoder User
@@ -16,7 +18,6 @@ userDecoder =
         User
         (Decode.at [ "username" ] Decode.string)
         (Decode.at [ "name" ] Decode.string)
-
 
 initialModel : String -> Model
 initialModel token =

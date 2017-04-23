@@ -3,12 +3,11 @@ module App.Session.Update exposing (..)
 import App.Session.Model exposing (Model, User, userDecoder)
 import App.Session.Msg exposing (..)
 import Json.Decode exposing (decodeValue)
-
+import App.Msg as BaseMsg
 
 update : Msg -> Model -> Model
 update msg session =
     case msg of
-
         UserConnected user ->
             let
                 u =
@@ -18,6 +17,9 @@ update msg session =
 
                         Err _ ->
                             Nothing
-
             in
                 { session | user = u }
+
+updateCmd: Msg -> Cmd BaseMsg.Msg
+updateCmd msg =
+    Cmd.none

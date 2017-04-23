@@ -8,8 +8,8 @@ import App.View exposing (view)
 import App.Update exposing (update)
 import App.Msg exposing (..)
 import Time
-
 import App.Session.View exposing (lobby)
+
 
 socket : String -> Socket Msg
 socket accessToken =
@@ -18,15 +18,21 @@ socket accessToken =
         |> Socket.heartbeatIntervallSeconds 20
         |> Socket.withDebug
 
+
 phoenixSubscription : Model -> Sub Msg
 phoenixSubscription model =
     Phoenix.connect (socket model.session.token) [ lobby ]
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch [ phoenixSubscription model, Time.every Time.second Tick ]
 
+
+
 -- MODEL
+
+
 main : Program Flags Model Msg
 main =
     programWithFlags
