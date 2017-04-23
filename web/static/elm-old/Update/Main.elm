@@ -11,6 +11,9 @@ import Json.Decode as Decode
 import Phoenix
 import Phoenix.Push as Push
 import Update.Session as Session
+import Update.Spotify as Spotify
+import Model.Spotify exposing (SpotifyTrack, SpotifyImage, SpotifyAlbum)
+import Msg.Spotify
 
 spotifyTrackDecoder : Decode.Decoder SpotifyTrack
 spotifyTrackDecoder =
@@ -52,7 +55,7 @@ lobbySocket : String
 lobbySocket =
     "ws://localhost:4000/socket/websocket"
 
-searchSpotify : String -> Cmd Msg
+searchSpotify : String -> Cmd Msg.Spotify.Msg
 searchSpotify term =
     let
         url =
@@ -65,7 +68,7 @@ searchSpotify term =
                     |> Decode.at [ "tracks" ]
                 )
     in
-        Http.send SearchResults request
+        Http.send Msg.Spotify.SearchResults request
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -88,34 +91,6 @@ update msg model =
                 , cmd
                 )
 
-        SearchResults (Ok results) ->
-            ( { model | results = results, error = Nothing }
-            , Cmd.none
-            )
-
-        SearchResults (Err err) ->
-            let
-                message =
-                    case err of
-                        Http.Timeout ->
-                            "Timeout"
-
-                        Http.BadUrl _ ->
-                            "BadUrl"
-
-                        Http.NetworkError ->
-                            "NetworkError"
-
-                        Http.BadStatus _ ->
-                            "BadStatus"
-
-                        Http.BadPayload _ _ ->
-                            "BadPayload"
-            in
-                ( { model | error = Just message }
-                , Cmd.none
-                )
-
         ConnectionStatusChanged status ->
             ( model
             , Cmd.none
@@ -128,9 +103,6 @@ update msg model =
             ( model
             , Cmd.none
             )
-
-        MsgForSession msg ->
-            ( { model | session = Session.update msg model.session }, Cmd.none)
 
         NewTrack track ->
             let
@@ -166,3 +138,11 @@ update msg model =
                 model.debounce
           in
             { model | debounce = debounce } ! [ cmd ]
+
+
+        MsgForSession msg ->
+            ( { model | session = Session.update msg model.session }, Cmd.none)
+
+
+        MsgForSpotify msg ->
+            ( { model | spotify = Spotify.update msg model.spotify }, Cmd.none)

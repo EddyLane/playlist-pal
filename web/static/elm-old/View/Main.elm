@@ -5,9 +5,10 @@ import Html.Attributes exposing (class, value, src, style, type_, placeholder, i
 import Html.Events exposing (..)
 import Model.Main exposing (..)
 import Msg.Main exposing (..)
+import Model.Spotify as Spotify
 
 
-result : SpotifyTrack -> Html Msg
+result : Spotify.SpotifyTrack -> Html Msg
 result track =
     let
         image =
@@ -34,7 +35,7 @@ view model =
         resultList =
             table [ class "table table-striped" ]
                 [ tbody []
-                    (List.map result model.results)
+                    (List.map result model.spotify.results)
                 , thead
                     []
                     [ tr [] [ th [] [ text "Image" ], th [] [ text "Name" ], th [] [ text "Artist" ], th [] [] ]
@@ -53,7 +54,7 @@ view model =
                     ""
 
         error =
-            case model.error of
+            case model.spotify.error of
                 Just error ->
                     (p [] [ text error ])
 

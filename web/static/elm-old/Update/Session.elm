@@ -27,6 +27,3 @@ update msg session =
 
             in
                 { session | user = u }
-
-
-        _ -> session
