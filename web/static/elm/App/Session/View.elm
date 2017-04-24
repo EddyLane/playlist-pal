@@ -13,7 +13,6 @@ onJoin user =
         |> Session.UserConnected
         |> MsgForSession
 
-
 lobby : Channel Msg
 lobby =
     Channel.init "me"
@@ -27,8 +26,8 @@ view model =
             case model.user of
                 Just user ->
                     user.name
+
                 Nothing ->
                     "Anonymous"
-
     in
         div [] [ text greeting ]

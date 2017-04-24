@@ -1,10 +1,12 @@
 module App.Model exposing (..)
 
 import App.Session.Model as Session
+import App.SearchForm.Model as SearchForm
 
 
 type alias Model =
     { session : Session.Model
+    , searchForm : SearchForm.Model
     }
 
 
@@ -15,6 +17,7 @@ type alias Flags =
 initialModel : Flags -> Model
 initialModel flags =
     { session = (Session.initialModel flags.token)
+    , searchForm = SearchForm.initialModel
     }
 
 

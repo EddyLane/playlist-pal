@@ -29,10 +29,6 @@ subscriptions model =
     Sub.batch [ phoenixSubscription model, Time.every Time.second Tick ]
 
 
-
--- MODEL
-
-
 main : Program Flags Model Msg
 main =
     programWithFlags

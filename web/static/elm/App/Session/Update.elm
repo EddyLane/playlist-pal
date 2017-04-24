@@ -5,6 +5,7 @@ import App.Session.Msg exposing (..)
 import Json.Decode exposing (decodeValue)
 import App.Msg as BaseMsg
 
+
 update : Msg -> Model -> Model
 update msg session =
     case msg of
@@ -20,6 +21,7 @@ update msg session =
             in
                 { session | user = u }
 
-updateCmd: Msg -> Cmd BaseMsg.Msg
+
+updateCmd : Msg -> Cmd BaseMsg.Msg
 updateCmd msg =
     Cmd.none
