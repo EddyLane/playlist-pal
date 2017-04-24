@@ -5,7 +5,7 @@ import Html.Attributes exposing (class, value, src, style, type_, placeholder, i
 import App.Model exposing (Model)
 import App.Msg exposing (Msg)
 import App.Session.View as Session
-import App.SearchForm.View as SearchForm
+import App.SearchForm.View.View as SearchForm
 
 
 view : Model -> Html Msg

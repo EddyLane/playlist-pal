@@ -1,4 +1,4 @@
-module App.SearchForm.View exposing (..)
+module App.SearchForm.View.Form exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (onInput)
@@ -7,8 +7,8 @@ import App.SearchForm.Model exposing (Model)
 import App.Msg exposing (..)
 import App.SearchForm.Msg as SearchFormMsg
 
-view : Model -> Html Msg
-view model =
+searchForm : Model -> Html Msg
+searchForm model =
 
     let
         updateSearch q =
