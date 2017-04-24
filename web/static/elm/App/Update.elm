@@ -9,17 +9,16 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MsgForSession msg ->
-            ( { model
-                | session = Session.update msg model.session
-              }
-            , Session.updateCmd msg
-            )
+            let
+                (session, cmd) = Session.update msg model.session
+            in
+                ({ model | session = session }, cmd)
 
         MsgForSearchForm msg ->
-            ( { model
-                | searchForm = SearchForm.update msg model.searchForm
-              }
-            , Cmd.none
-            )
+            let
+                (searchForm, cmd) = SearchForm.update msg model.searchForm
+            in
+                ({ model | searchForm = searchForm }, cmd)
+
         _ ->
             ( model, Cmd.none )

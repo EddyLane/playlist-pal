@@ -6,7 +6,7 @@ import Json.Decode exposing (decodeValue)
 import App.Msg as BaseMsg
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd BaseMsg.Msg )
 update msg session =
     case msg of
         UserConnected user ->
@@ -19,7 +19,7 @@ update msg session =
                         Err _ ->
                             Nothing
             in
-                { session | user = u }
+                ({ session | user = u }, Cmd.none)
 
 
 updateCmd : Msg -> Cmd BaseMsg.Msg

@@ -22,11 +22,11 @@ searchSpotify term =
     in
         Http.send (\result -> SearchResults result |> BaseMsg.MsgForSearchForm) request
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd BaseMsg.Msg )
 update msg searchForm =
     case msg of
         UpdateSearch term ->
-            { searchForm | term = term }
+            ({ searchForm | term = term }, Cmd.none)
 
 
         DebounceMsg msg ->
@@ -40,8 +40,9 @@ update msg searchForm =
           in
             { searchForm | debounce = debounce } ! [ cmd ]
 
+
         SearchResults (Ok results) ->
-            { searchForm | results = results, error = Nothing }
+            ({ searchForm | results = results, error = Nothing }, Cmd.none)
 
         SearchResults (Err err) ->
             let
@@ -62,7 +63,7 @@ update msg searchForm =
                         Http.BadPayload _ _ ->
                             "BadPayload"
             in
-                { searchForm | error = Just message }
+                ({ searchForm | error = Just message }, Cmd.none)
 
 updateCmd : Msg -> Cmd BaseMsg.Msg
 updateCmd msg =
