@@ -5,8 +5,7 @@ import Html.Attributes exposing (class, value, src, style, type_, placeholder, i
 import App.Model exposing (Model)
 import App.Msg exposing (Msg)
 import App.Session.View as Session
-import App.SearchForm.View.View as SearchForm
-
+import App.Events.View as Events
 
 view : Model -> Html Msg
 view model =
@@ -16,12 +15,18 @@ view model =
 
         searchForm =
             model.searchForm
+
+        events =
+            model.events
+
     in
         div [ class "container" ]
             [ div [] [ Session.view session ]
             , div [ class "row" ]
                 [ div [ class "col-sm-9" ]
-                    [ SearchForm.view searchForm
+                    [
+                        Events.view events
+--                    SearchForm.view searchForm
                     ]
                 ]
             ]

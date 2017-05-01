@@ -26,8 +26,10 @@ update : Msg -> Model -> ( Model, Cmd BaseMsg.Msg )
 update msg searchForm =
     case msg of
         UpdateSearch term ->
-            ({ searchForm | term = term }, Cmd.none)
-
+            let
+                (debounce, cmd) = Debounce.push debounceConfig term searchForm.debounce
+            in
+                ({ searchForm | term = term, debounce = debounce }, cmd)
 
         DebounceMsg msg ->
           let

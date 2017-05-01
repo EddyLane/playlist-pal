@@ -9,7 +9,7 @@ import App.Update exposing (update)
 import App.Msg exposing (..)
 import Time
 import App.Session.View exposing (lobby)
-
+import App.Events.View exposing (eventChannel)
 
 socket : String -> Socket Msg
 socket accessToken =
@@ -21,7 +21,7 @@ socket accessToken =
 
 phoenixSubscription : Model -> Sub Msg
 phoenixSubscription model =
-    Phoenix.connect (socket model.session.token) [ lobby ]
+    Phoenix.connect (socket model.session.token) [ lobby, eventChannel ]
 
 
 subscriptions : Model -> Sub Msg

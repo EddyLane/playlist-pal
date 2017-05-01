@@ -10,6 +10,7 @@ defmodule ElixirElmBootstrap.User do
     field :password_hash, :string
 
     has_many :tracks, ElixirElmBootstrap.Track
+    has_many :events, ElixirElmBootstrap.Event
 
     timestamps
   end
