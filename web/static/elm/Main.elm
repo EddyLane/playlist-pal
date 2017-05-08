@@ -11,6 +11,7 @@ import Time
 import App.Session.View exposing (lobby)
 import App.Events.View exposing (eventChannel)
 
+
 socket : String -> Socket Msg
 socket accessToken =
     Socket.init "ws://localhost:4000/socket/websocket"
@@ -21,7 +22,12 @@ socket accessToken =
 
 phoenixSubscription : Model -> Sub Msg
 phoenixSubscription model =
-    Phoenix.connect (socket model.session.token) [ lobby, eventChannel ]
+    let
+        subs = case model.session.user of
+            Just user -> [ lobby, (eventChannel user) ]
+            Nothing -> [ lobby ]
+    in
+        Phoenix.connect (socket model.session.token) subs
 
 
 subscriptions : Model -> Sub Msg

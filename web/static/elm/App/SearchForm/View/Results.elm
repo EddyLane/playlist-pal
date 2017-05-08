@@ -2,9 +2,9 @@ module App.SearchForm.View.Results exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-
 import App.SearchForm.Msg exposing (SpotifyTrack)
 import App.Msg exposing (..)
+
 
 result : SpotifyTrack -> Html Msg
 result track =
@@ -24,7 +24,8 @@ result track =
             , td [] [ button [] [ text "+" ] ]
             ]
 
-results: List SpotifyTrack -> Html Msg
+
+results : List SpotifyTrack -> Html Msg
 results results =
     table [ class "table table-striped" ]
         [ tbody []

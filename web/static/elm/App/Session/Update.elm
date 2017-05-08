@@ -19,7 +19,7 @@ update msg session =
                         Err _ ->
                             Nothing
             in
-                ({ session | user = u }, Cmd.none)
+                ( { session | user = u }, Cmd.none )
 
 
 updateCmd : Msg -> Cmd BaseMsg.Msg

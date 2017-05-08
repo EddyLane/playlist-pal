@@ -5,6 +5,7 @@ import App.Session.Msg as Session
 import App.SearchForm.Msg as SearchForm
 import App.Events.Msg as Events
 
+
 type Msg
     = NoOp
     | Tick Time

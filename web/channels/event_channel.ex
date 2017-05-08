@@ -3,10 +3,20 @@ defmodule ElixirElmBootstrap.EventChannel do
   use ElixirElmBootstrap.Web, :channel
   use Guardian.Phoenix.Socket, only: [:current_resource/1]
 
-  def join("events", _, socket) do
-    user_events = current_resource(socket) |> assoc(:events)
-    {:ok, Poison.encode!(user_events), socket}
-  end
+  def join("events:" <> username, _, socket) do
 
+    user = current_resource(socket)
+
+    case user.username do
+        username ->
+            user_events = user
+                |> assoc(:events)
+                |> Repo.all
+            {:ok, user_events, socket}
+        _ ->
+            {:err, socket }
+    end
+
+  end
 
 end

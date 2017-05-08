@@ -7,17 +7,20 @@ import App.Msg exposing (..)
 import Json.Encode
 import App.Session.Model as Model
 
+
 onJoin : Json.Encode.Value -> Msg
 onJoin user =
     user
         |> Session.UserConnected
         |> MsgForSession
 
+
 lobby : Channel Msg
 lobby =
     Channel.init "me"
         |> Channel.onJoin onJoin
         |> Channel.withDebug
+
 
 view : Model.Model -> Html Msg
 view model =

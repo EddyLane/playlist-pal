@@ -7,6 +7,7 @@ import App.Msg exposing (Msg)
 import App.Session.View as Session
 import App.Events.View as Events
 
+
 view : Model -> Html Msg
 view model =
     let
@@ -18,15 +19,13 @@ view model =
 
         events =
             model.events
-
     in
         div [ class "container" ]
             [ div [] [ Session.view session ]
             , div [ class "row" ]
                 [ div [ class "col-sm-9" ]
-                    [
-                        Events.view events
---                    SearchForm.view searchForm
+                    [ Events.view events
+                      --                    SearchForm.view searchForm
                     ]
                 ]
             ]

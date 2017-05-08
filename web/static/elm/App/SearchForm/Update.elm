@@ -7,6 +7,7 @@ import App.Msg as BaseMsg
 import Http
 import Debounce exposing (Debounce)
 
+
 searchSpotify : String -> Cmd BaseMsg.Msg
 searchSpotify term =
     let
@@ -22,29 +23,30 @@ searchSpotify term =
     in
         Http.send (\result -> SearchResults result |> BaseMsg.MsgForSearchForm) request
 
+
 update : Msg -> Model -> ( Model, Cmd BaseMsg.Msg )
 update msg searchForm =
     case msg of
         UpdateSearch term ->
             let
-                (debounce, cmd) = Debounce.push debounceConfig term searchForm.debounce
+                ( debounce, cmd ) =
+                    Debounce.push debounceConfig term searchForm.debounce
             in
-                ({ searchForm | term = term, debounce = debounce }, cmd)
+                ( { searchForm | term = term, debounce = debounce }, cmd )
 
         DebounceMsg msg ->
-          let
-            (debounce, cmd) =
-              Debounce.update
-                debounceConfig
-                (Debounce.takeLast searchSpotify)
-                msg
-                searchForm.debounce
-          in
-            { searchForm | debounce = debounce } ! [ cmd ]
-
+            let
+                ( debounce, cmd ) =
+                    Debounce.update
+                        debounceConfig
+                        (Debounce.takeLast searchSpotify)
+                        msg
+                        searchForm.debounce
+            in
+                { searchForm | debounce = debounce } ! [ cmd ]
 
         SearchResults (Ok results) ->
-            ({ searchForm | results = results, error = Nothing }, Cmd.none)
+            ( { searchForm | results = results, error = Nothing }, Cmd.none )
 
         SearchResults (Err err) ->
             let
@@ -65,7 +67,8 @@ update msg searchForm =
                         Http.BadPayload _ _ ->
                             "BadPayload"
             in
-                ({ searchForm | error = Just message }, Cmd.none)
+                ( { searchForm | error = Just message }, Cmd.none )
+
 
 updateCmd : Msg -> Cmd BaseMsg.Msg
 updateCmd msg =

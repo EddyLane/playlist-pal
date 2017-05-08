@@ -19,6 +19,11 @@ defmodule ElixirElmBootstrap.EventController do
         |> put_status(:created)
         |> put_resp_header("location", event_path(conn, :show, event))
         |> render("show.json", event: event)
+
+        ElixirElmBootstrap.EventChannel.broadcast()
+
+        conn
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)

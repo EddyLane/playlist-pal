@@ -1,5 +1,6 @@
 defmodule ElixirElmBootstrap.Event do
   use ElixirElmBootstrap.Web, :model
+  @derive {Poison.Encoder, only: [:name]}
 
   schema "events" do
     field :name, :string
