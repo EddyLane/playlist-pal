@@ -52,20 +52,35 @@ update msg model =
             in
                 ( { model | newForm = { newEvent | name = name } }, Cmd.none )
 
-        EventChannelConnected eventJson ->
+        EventChannelConnected eventsJson ->
             let
                 events =
-                    case Decode.decodeValue (Decode.list eventDecoder) eventJson of
+                    case Decode.decodeValue (Decode.list eventDecoder) eventsJson of
                         Ok events ->
-                            events
+                            Debug.log "DEBUG EVENT CHANNEL CONNECTED" events
 
                         Err _ ->
                             model.events
             in
                 ( { model | events = events }, Cmd.none )
 
+        EventChannelUpdated eventJson ->
+            let
+                events =
+                    case Decode.decodeValue eventDecoder eventJson of
+                        Ok event ->
+                            Debug.log "DEBUG EVENT CHANNEL UPDATED" (model.events ++ [event])
+
+                        Err _ ->
+                            Debug.log "DEBUG EVENT CHANNEL UPDATED ERROR!!!" model.events
+
+
+            in
+                ( { model | events = events }, Cmd.none )
+
+
         CreateEvent name ->
-            ( model, name |> encodeEvent |> postEvent )
+            ( { model | newForm = { id = Nothing, name = "" } }, name |> encodeEvent |> postEvent )
 
         CreateEventRequest (Ok event) ->
             ( model, Cmd.none )

@@ -9,5 +9,6 @@ type Msg
     = SetEvents (Result Http.Error (List Event))
     | NewFormName String
     | EventChannelConnected Encode.Value
+    | EventChannelUpdated Encode.Value
     | CreateEvent String
     | CreateEventRequest (Result Http.Error (Event))

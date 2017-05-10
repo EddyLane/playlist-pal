@@ -16,11 +16,17 @@ onJoin events =
         |> EventsMsg.EventChannelConnected
         |> MsgForEvents
 
+onUpdate : Json.Encode.Value -> Msg
+onUpdate event =
+    event
+        |> EventsMsg.EventChannelUpdated
+        |> MsgForEvents
 
 eventChannel : User -> Channel Msg
 eventChannel user =
     Channel.init ("events:" ++ user.username)
         |> Channel.onJoin onJoin
+        |> Channel.on "added" onUpdate
         |> Channel.withDebug
 
 
