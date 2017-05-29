@@ -55,6 +55,11 @@ newForm model =
                 |> EventsMsg.NewFormName
                 |> MsgForEvents
 
+        closeModal =
+            Modal.hiddenState
+                |> EventsMsg.FormModal
+                |> MsgForEvents
+
         newEvent =
             model.newForm
     in
@@ -79,14 +84,22 @@ newForm model =
                 ]
             |> Modal.footer []
                 [ Button.button
-                    [ Button.outlinePrimary
+                    [ Button.secondary
+                    , Button.attrs
+                        [ type_ "button"
+                        , onClick closeModal
+                        ]
+                    ]
+                    [ text "Close" ]
+                , Button.button
+                    [ Button.primary
                     , Button.attrs
                         [ disabled model.submitting
                         , type_ "submit"
                         , onClick submit
                         ]
                     ]
-                    [ text "Create" ]
+                    [ text "Create event" ]
                 ]
             |> Modal.view model.formModalState
 

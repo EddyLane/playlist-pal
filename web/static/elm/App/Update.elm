@@ -33,7 +33,11 @@ update msg model =
                 ( { model | events = events }, cmd )
 
         UrlChange location ->
-            ( { model | history = Url.parseHash route location :: model.history }, Cmd.none )
+            ( { model
+                | history = Url.parseHash route location :: model.history
+              }
+            , Cmd.none
+            )
 
         _ ->
             ( model, Cmd.none )

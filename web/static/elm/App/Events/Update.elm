@@ -8,6 +8,7 @@ import App.Events.Model exposing (Model, eventDecoder)
 import App.Msg as BaseMsg
 import App.Events.Msg exposing (..)
 import Bootstrap.Modal as Modal
+import Navigation
 
 
 url : String
@@ -72,15 +73,32 @@ update msg model =
 
         EventChannelUpdated eventJson ->
             let
-                events =
+                results =
                     case Decode.decodeValue eventDecoder eventJson of
                         Ok event ->
-                            Debug.log "EVENT ADDED" (model.events ++ [ event ])
+                            ( ( [ event ] ++ model.events, Modal.hiddenState )
+                            , case event.slug of
+                                Just slug ->
+                                    Navigation.newUrl ("#event/" ++ slug)
+                                _ ->
+                                    Cmd.none
+                            )
 
                         Err _ ->
-                            Debug.log "EVENT ERROR" model.events
+                            ( ( model.events, Modal.visibleState ), Cmd.none )
+
+                events =
+                    results |> Tuple.first |> Tuple.first
+
+                formModalState =
+                    results |> Tuple.first |> Tuple.second
             in
-                ( { model | events = events }, Cmd.none )
+                ( { model
+                    | events = events
+                    , formModalState = formModalState
+                  }
+                , Tuple.second results
+                )
 
         CreateEvent name ->
             ( { model
@@ -90,7 +108,12 @@ update msg model =
             )
 
         CreateEventRequest (Ok event) ->
-            ( { model | submitting = False, newForm = { id = Nothing, name = "", slug = Nothing } }, Cmd.none )
+            ( { model
+                | submitting = False
+                , newForm = { id = Nothing, name = "", slug = Nothing }
+              }
+            , Cmd.none
+            )
 
         CreateEventRequest (Err err) ->
             ( { model | submitting = False }, Cmd.none )
