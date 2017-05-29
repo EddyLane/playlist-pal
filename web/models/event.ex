@@ -1,9 +1,15 @@
+defmodule NameSlug do
+  use EctoAutoslugField.Slug, from: :name, to: :slug
+end
+
 defmodule ElixirElmBootstrap.Event do
   use ElixirElmBootstrap.Web, :model
-  @derive {Poison.Encoder, only: [:name]}
+  @derive {Poison.Encoder, only: [:id, :name, :slug]}
 
   schema "events" do
     field :name, :string
+    field :slug, NameSlug.Type
+
     belongs_to :user, ElixirElmBootstrap.User
 
     timestamps()
@@ -16,5 +22,7 @@ defmodule ElixirElmBootstrap.Event do
     struct
     |> cast(params, [:name, :user_id])
     |> validate_required([:name, :user_id])
+    |> NameSlug.maybe_generate_slug
+    |> NameSlug.unique_constraint
   end
 end

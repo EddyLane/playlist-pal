@@ -7,9 +7,13 @@ import Json.Encode as Encode
 import App.Events.Model exposing (Model, eventDecoder)
 import App.Msg as BaseMsg
 import App.Events.Msg exposing (..)
+import Bootstrap.Modal as Modal
+
 
 url : String
-url = "/api/events"
+url =
+    "/api/events"
+
 
 getEvents : Cmd BaseMsg.Msg
 getEvents =
@@ -24,17 +28,19 @@ encodeEvent : String -> Encode.Value
 encodeEvent name =
     let
         structure =
-            [ ( "name", Encode.string name) ]
+            [ ( "name", Encode.string name ) ]
     in
-        Encode.object([ ( "event", Encode.object(structure) )])
+        Encode.object ([ ( "event", Encode.object (structure) ) ])
+
 
 postEvent : Encode.Value -> Cmd BaseMsg.Msg
 postEvent json =
     let
         request =
-            Http.post url (Http.jsonBody(json)) eventDecoder
-     in
+            Http.post url (Http.jsonBody (json)) (Decode.at [ "data" ] eventDecoder)
+    in
         Http.send (\result -> CreateEventRequest result |> BaseMsg.MsgForEvents) request
+
 
 update : Msg -> Model -> ( Model, Cmd BaseMsg.Msg )
 update msg model =
@@ -57,7 +63,7 @@ update msg model =
                 events =
                     case Decode.decodeValue (Decode.list eventDecoder) eventsJson of
                         Ok events ->
-                            Debug.log "DEBUG EVENT CHANNEL CONNECTED" events
+                            Debug.log "EVENT CONNECTED" events
 
                         Err _ ->
                             model.events
@@ -69,21 +75,25 @@ update msg model =
                 events =
                     case Decode.decodeValue eventDecoder eventJson of
                         Ok event ->
-                            Debug.log "DEBUG EVENT CHANNEL UPDATED" (model.events ++ [event])
+                            Debug.log "EVENT ADDED" (model.events ++ [ event ])
 
                         Err _ ->
-                            Debug.log "DEBUG EVENT CHANNEL UPDATED ERROR!!!" model.events
-
-
+                            Debug.log "EVENT ERROR" model.events
             in
                 ( { model | events = events }, Cmd.none )
 
-
         CreateEvent name ->
-            ( { model | newForm = { id = Nothing, name = "" } }, name |> encodeEvent |> postEvent )
+            ( { model
+                | submitting = True
+              }
+            , name |> encodeEvent |> postEvent
+            )
 
         CreateEventRequest (Ok event) ->
-            ( model, Cmd.none )
+            ( { model | submitting = False, newForm = { id = Nothing, name = "", slug = Nothing } }, Cmd.none )
 
         CreateEventRequest (Err err) ->
-            ( model, Cmd.none )
+            ( { model | submitting = False }, Cmd.none )
+
+        FormModal state ->
+            ( { model | formModalState = state }, Cmd.none )
