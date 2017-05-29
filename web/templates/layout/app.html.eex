@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,50 +8,108 @@
     <meta name="author" content="">
 
     <title>Hello ElixirElmBootstrap!</title>
-    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
-  </head>
+    <!--<link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">-->
+</head>
 
-  <body>
-    <div class="container">
+<body>
 
-      <div class="header">
+<nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">
 
-        <ol class="breadcrumb text-right">
-          <%= if Guardian.Plug.current_resource(@conn) do %>
-          <li><%= link(user(@conn).username, to: user_path(@conn, :show, user(@conn).username)) %></li>
-          <li><%= link("Logout", to: logout_path(@conn, :delete), method: :delete) %></li>
-          <% else %>
-          <li><%= link "Register", to: user_path(@conn, :new) %></li>
-          <li><%= link("Login", to: login_path(@conn, :create)) %></li>
-          <% end %>
-        </ol>
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <span class="logo"></span>
+    <a class="navbar-brand" href="/">PlaylistPal</a>
 
-      </div>
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
 
-      <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-      <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+        <ul class="navbar-nav mr-auto">
+            <%= if current_resource(@conn) do %>
+            <li class="nav-item">
+                <%= link(user(@conn).username, to: user_path(@conn, :show, user(@conn).username), class: "nav-link") %>
+            </li>
+            <li class="nav-item">
+                <%= link("Logout", to: logout_path(@conn, :delete), method: :delete, class: "nav-link") %>
+            </li>
+            <% else %>
+            <li class="nav-item">
+                <%= link "Sign up", to: user_path(@conn, :new), class: "nav-link" %>
+            </li>
+            <li class="nav-item">
+                <%= link "Login", to: login_path(@conn, :create), class: "nav-link" %>
+            </li>
+            <% end %>
+        </ul>
 
-      <main role="main">
-        <div id="elm-root"></div>
-        <%= render @view_module, @view_template, assigns %>
-      </main>
+        <!--<form class="form-inline my-2 my-lg-0">-->
+            <!--<input class="form-control mr-sm-2" type="text" placeholder="Search">-->
+            <!--<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>-->
+        <!--</form>-->
+
+    </div>
+
+</nav>
+
+<main role="main">
+    <%= render @view_module, @view_template, assigns %>
+</main>
+
+<div class="container">
+    <hr>
+
+    <footer>
+        <p>&copy; Eddy and Rachael 2017</p>
+    </footer>
+
+</div>
+
+<!--<div class="container">-->
+
+    <!--<nav class="navbar navbar-default">-->
+        <!--<div class="container-fluid">-->
+
+            <!--<div class="navbar-header">-->
+                <!--<a class="navbar-brand" href="#">Elm Phoenix</a>-->
+            <!--</div>-->
+
+            <!--<div class="navbar-collapse collapse">-->
+                <!--<ul class="navbar navbar-nav">-->
+                    <!--<%= if Guardian.Plug.current_resource(@conn) do %>-->
+                    <!--<li><%= link(user(@conn).username, to: user_path(@conn, :show, user(@conn).username)) %></li>-->
+                    <!--<li><%= link("Logout", to: logout_path(@conn, :delete), method: :delete) %></li>-->
+                    <!--<% else %>-->
+                    <!--<li><%= link "Register", to: user_path(@conn, :new) %></li>-->
+                    <!--<li>-->
+                    <!--<% end %>-->
+                <!--</ul>-->
+            <!--</div>-->
 
 
-    </div> <!-- /container -->
+        <!--</div>-->
 
-    <script>
-      <%= if Guardian.Plug.current_resource(@conn) do %>
-        window.user = <%= {:safe, user_json(@conn) } %>;
-      <% end %>
-    </script>
+    <!--</nav>-->
 
-    <%= if Mix.env == :dev do %>
-    <script src='http://localhost:4001/app.bundle.js'></script>
-    <% else %>
-    <script src="<%= static_path(@conn, "/js/bundle.js") %>"></script>
+    <!--<p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>-->
+    <!--<p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>-->
+
+    <!--<main role="main">-->
+        <!--<div id="elm-root"></div>-->
+    <!--</main>-->
+
+
+<!--</div> &lt;!&ndash; /container &ndash;&gt;-->
+
+<script>
+    <%= if current_resource(@conn) do %>
+    window.token = "<%= {:safe, current_token(@conn) } %>";
     <% end %>
+</script>
 
-  </body>
+<%= if Mix.env == :dev do %>
+<script src='http://localhost:4001/app.bundle.js'></script>
+<% else %>
+<script src="<%= static_path(@conn, "/js/bundle.js") %>"></script>
+<% end %>
+
+</body>
 </html>

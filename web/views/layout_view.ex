@@ -2,8 +2,10 @@ defmodule ElixirElmBootstrap.LayoutView do
 
   use ElixirElmBootstrap.Web, :view
 
+  import Guardian.Plug
+
   def user(conn) do
-    Guardian.Plug.current_resource(conn)
+    current_resource(conn)
   end
 
   def user_json(conn) do

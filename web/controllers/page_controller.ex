@@ -1,8 +1,18 @@
 defmodule ElixirElmBootstrap.PageController do
+
   use ElixirElmBootstrap.Web, :controller
+  import Guardian.Plug
 
   def index(conn, _params) do
-    render conn, "index.html"
+    case current_resource(conn) do
+      nil -> render conn, "index.html"
+      user -> redirect conn, to: "/app"
+    end
   end
+
+  def app(conn, _params) do
+    render conn, "app.html"
+  end
+
 
 end

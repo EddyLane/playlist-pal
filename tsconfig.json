@@ -10,7 +10,7 @@
       // add path to @types
       "node_modules/@types"
     ],
-    "allowJs": true,
+    "allowJs": false,
     "files": [
       "web/static/ts/app.d.ts"
     ]

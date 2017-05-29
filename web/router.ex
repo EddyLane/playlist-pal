@@ -11,6 +11,7 @@ defmodule ElixirElmBootstrap.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session
   end
 
   pipeline :browser_session do
@@ -40,8 +41,14 @@ defmodule ElixirElmBootstrap.Router do
     resources "/users", UserController, only: [:show]
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", ElixirElmBootstrap do
-  #   pipe_through :api
-  # end
+  scope "/", ElixirElmBootstrap do
+    pipe_through [:browser, :browser_session, :authenticate_user] # Use the default browser stack
+    get "/app", PageController, :app
+  end
+
+   scope "/api", ElixirElmBootstrap do
+     pipe_through [:api, :browser_session, :authenticate_user]
+     resources "/events", EventController, except: [:new, :edit]
+   end
+
 end

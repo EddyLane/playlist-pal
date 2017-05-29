@@ -1,11 +1,12 @@
-import '../css/app.css';
+import '../sass/main.scss';
 import 'phoenix_html';
 
-window.user = window.user || { "username": "anon", "name": "Anonymous" };
+const ELM_ELEMENT_ID = 'elm-root';
+const FLAGS = {
+    token: window.token || ''
+};
+const targetElement = document.getElementById(ELM_ELEMENT_ID);
 
-const Elm = require('../elm/Main.elm');
-const targetElement = document.getElementById('elm-root');
-
-Elm.Main.embed(targetElement, {
-    user: window.user
-});
+if (targetElement) {
+    require('../elm/Main.elm').Main.embed(targetElement, FLAGS);
+}

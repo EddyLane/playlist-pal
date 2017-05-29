@@ -12,9 +12,10 @@ const entryPath = './ts/app.ts';
 
 module.exports = {
     resolve: {
-        extensions: ['.js', '.ts', '.elm', '.css'],
+        extensions: ['.js', '.ts', '.elm', '.css', '.scss'],
         alias: {
-            phoenix_html: '../../../deps/phoenix_html/priv/static/phoenix_html'
+            phoenix_html: '../../../deps/phoenix_html/priv/static/phoenix_html',
+            phoenix: '../../../deps/phoenix/priv/static/phoenix'
         }
     },
     context: path.resolve(__dirname, './web/static'),
@@ -39,6 +40,14 @@ module.exports = {
     },
     module: {
         rules: [
+            {
+                test: /\.scss$/,
+                use: [
+                    "style-loader",
+                    "css-loader",
+                    "sass-loader"
+                ]
+            },
             {
                 test: /\.css$/,
                 use: [

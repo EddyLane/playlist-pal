@@ -9,10 +9,7 @@ config :elixir_elm_bootstrap, ElixirElmBootstrap.Endpoint,
   http: [port: 4000],
   debug_errors: true,
   code_reloader: true,
-  check_origin: false,
-  watchers: [
-    node: ["webpack.devserver.js"]
-  ]
+  check_origin: false
 
 
 # Watch static and templates for browser reloading.

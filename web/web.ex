@@ -49,6 +49,8 @@ defmodule ElixirElmBootstrap.Web do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
 
+      import Guardian.Plug, only: [current_resource: 1]
+
       import ElixirElmBootstrap.Router.Helpers
       import ElixirElmBootstrap.ErrorHelpers
       import ElixirElmBootstrap.Gettext
