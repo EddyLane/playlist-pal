@@ -16,6 +16,7 @@ type alias Model =
     , newForm : Event
     , submitting : Bool
     , formModalState : Modal.State
+    , lastCreatedId : Maybe Int
     }
 
 
@@ -38,4 +39,5 @@ initialModel =
         }
     , submitting = False
     , formModalState = Modal.hiddenState
+    , lastCreatedId = Nothing
     }

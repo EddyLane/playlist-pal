@@ -7,6 +7,7 @@ import Json.Encode as Encode
 import App.Events.Model exposing (Model, eventDecoder)
 import App.Msg as BaseMsg
 import App.Events.Msg exposing (..)
+import App.Events.Model exposing (Event)
 import Bootstrap.Modal as Modal
 import Navigation
 
@@ -43,6 +44,22 @@ postEvent json =
         Http.send (\result -> CreateEventRequest result |> BaseMsg.MsgForEvents) request
 
 
+isIdentical : Event -> Event -> Bool
+isIdentical a b =
+    case ( a.id, b.id ) of
+        ( Just aId, Just bId ) ->
+            aId == bId
+
+        _ ->
+            False
+
+
+findEvent : List Event -> Event -> Maybe Event
+findEvent events event =
+    List.filter (isIdentical event) events
+        |> List.head
+
+
 update : Msg -> Model -> ( Model, Cmd BaseMsg.Msg )
 update msg model =
     case msg of
@@ -77,9 +94,13 @@ update msg model =
                     case Decode.decodeValue eventDecoder eventJson of
                         Ok event ->
                             ( ( [ event ] ++ model.events, Modal.hiddenState )
-                            , case event.slug of
-                                Just slug ->
-                                    Navigation.newUrl ("#event/" ++ slug)
+                            , case (event.slug, model.lastCreatedId, event.id) of
+                                (Just slug, Just lastCreatedId, Just id) ->
+                                    if id == lastCreatedId then
+                                        Navigation.newUrl ("#event/" ++ slug)
+                                    else
+                                        Cmd.none
+
                                 _ ->
                                     Cmd.none
                             )
@@ -108,12 +129,27 @@ update msg model =
             )
 
         CreateEventRequest (Ok event) ->
-            ( { model
-                | submitting = False
-                , newForm = { id = Nothing, name = "", slug = Nothing }
-              }
-            , Cmd.none
-            )
+            let
+                cmd =
+                    case findEvent model.events event of
+                        Just found ->
+                            case found.slug of
+                                Just slug ->
+                                    Navigation.newUrl ("#event/" ++ slug)
+
+                                _ ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+            in
+                ( { model
+                    | submitting = False
+                    , newForm = { id = Nothing, name = "", slug = Nothing }
+                    , lastCreatedId = event.id
+                  }
+                , cmd
+                )
 
         CreateEventRequest (Err err) ->
             ( { model | submitting = False }, Cmd.none )
