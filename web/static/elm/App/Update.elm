@@ -5,6 +5,7 @@ import App.Model exposing (..)
 import App.Session.Update as Session
 import App.SearchForm.Update as SearchForm
 import App.Events.Update as Events
+import App.Events.Msg as EventsMsg
 import UrlParser as Url exposing (parseHash)
 
 
@@ -38,6 +39,13 @@ update msg model =
               }
             , Cmd.none
             )
+
+        Tick time ->
+            let
+                ( events, cmd ) =
+                    Events.update (EventsMsg.Tick time) model.events
+            in
+                ( { model | events = events }, cmd )
 
         _ ->
             ( model, Cmd.none )

@@ -4,12 +4,13 @@ import Http
 import App.Msg as BaseMsg
 import Json.Decode as Decode
 import Json.Encode as Encode
-import App.Events.Model exposing (Model, eventDecoder)
+import App.Events.Model exposing (Model, eventDecoder, errorDecoder)
 import App.Msg as BaseMsg
 import App.Events.Msg exposing (..)
 import App.Events.Model exposing (Event)
 import Bootstrap.Modal as Modal
 import Navigation
+import Http
 
 
 url : String
@@ -90,19 +91,22 @@ update msg model =
 
         EventChannelUpdated eventJson ->
             let
+                cmd event =
+                    case ( event.slug, model.lastCreatedId, event.id ) of
+                        ( Just slug, Just lastCreatedId, Just id ) ->
+                            if id == lastCreatedId then
+                                Navigation.newUrl ("#event/" ++ slug)
+                            else
+                                Cmd.none
+
+                        _ ->
+                            Cmd.none
+
                 results =
                     case Decode.decodeValue eventDecoder eventJson of
                         Ok event ->
                             ( ( [ event ] ++ model.events, Modal.hiddenState )
-                            , case (event.slug, model.lastCreatedId, event.id) of
-                                (Just slug, Just lastCreatedId, Just id) ->
-                                    if id == lastCreatedId then
-                                        Navigation.newUrl ("#event/" ++ slug)
-                                    else
-                                        Cmd.none
-
-                                _ ->
-                                    Cmd.none
+                            , cmd event
                             )
 
                         Err _ ->
@@ -124,6 +128,8 @@ update msg model =
         CreateEvent name ->
             ( { model
                 | submitting = True
+                , hasError = Nothing
+                , errors = { name = [] }
               }
             , name |> encodeEvent |> postEvent
             )
@@ -152,7 +158,59 @@ update msg model =
                 )
 
         CreateEventRequest (Err err) ->
-            ( { model | submitting = False }, Cmd.none )
+            let
+                errors =
+                    case err of
+                        Http.BadStatus err ->
+                            Result.withDefault model.errors (decodeErrors err.body)
+
+                        _ ->
+                            model.errors
+
+                decodeErrors bodyString =
+                    Decode.decodeString errorDecoder bodyString
+            in
+                ( { model
+                    | submitting = False
+                    , hasError = Just err
+                    , errors = errors
+                  }
+                , Cmd.none
+                )
 
         FormModal state ->
             ( { model | formModalState = state }, Cmd.none )
+
+        Tick time ->
+            let
+                newCount =
+                    case model.hasError of
+                        Just _ ->
+                            if errorHasTimedOut then
+                                0
+                            else
+                                model.errorPresentTime + 1
+
+                        _ ->
+                            0
+
+                hasError =
+                    case model.hasError of
+                        Just _ ->
+                            if errorHasTimedOut then
+                                Nothing
+                            else
+                                model.hasError
+
+                        _ ->
+                            Nothing
+
+                errorHasTimedOut =
+                    model.errorPresentTime > 5
+            in
+                ( { model
+                    | hasError = hasError
+                    , errorPresentTime = newCount
+                  }
+                , Cmd.none
+                )

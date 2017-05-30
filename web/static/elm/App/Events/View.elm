@@ -18,6 +18,7 @@ import Bootstrap.Form as Form
 import Bootstrap.Form.Input as Input
 import Bootstrap.Button as Button
 import Bootstrap.Modal as Modal
+import Bootstrap.Alert as Alert
 
 
 onJoin : Json.Encode.Value -> Msg
@@ -62,26 +63,57 @@ newForm model =
 
         newEvent =
             model.newForm
-    in
-        Modal.config (\e -> e |> EventsMsg.FormModal |> MsgForEvents)
-            |> Modal.large
-            |> Modal.h3 [] [ text "Create event" ]
-            |> Modal.body []
-                [ Form.form [ onSubmit submit ]
-                    [ Form.group []
-                        [ Form.label [ for "new-event-form-name" ] [ text "Event name" ]
-                        , Input.text
-                            [ Input.id "new-event-form-name"
-                            , Input.attrs
-                                [ placeholder "New event..."
-                                , value newEvent.name
-                                , onInput updateName
-                                , disabled model.submitting
-                                ]
+
+        modalHeader =
+            case model.hasError of
+                Just err ->
+                    Alert.danger [ text "Uhoh! Attempt to create your event seems to have failed.." ]
+
+                _ ->
+                    div [] []
+
+        hasNameErrors =
+            (List.length model.errors.name) > 0
+
+        nameFormGroupAttrs =
+            if hasNameErrors then
+                []
+            else
+                [ ]
+
+        nameInputAttrs =
+            if hasNameErrors then
+                []
+            else
+                []
+
+        modalBody =
+            [ modalHeader
+            , Form.form [ onSubmit submit ]
+                [ Form.group nameFormGroupAttrs
+                    [ Form.label [ for "new-event-form-name" ] [ text "Event name" ]
+                    , Input.text
+                        (List.concat
+                            [ [ Input.id "new-event-form-name"
+                              , Input.attrs
+                                    [ placeholder "New event..."
+                                    , value newEvent.name
+                                    , onInput updateName
+                                    , disabled model.submitting
+                                    ]
+                              ]
+                            , nameInputAttrs
                             ]
-                        ]
+                        )
                     ]
                 ]
+            ]
+    in
+        Modal.config (\e -> e |> EventsMsg.FormModal |> MsgForEvents)
+            |> Modal.small
+            |> Modal.h3 [] [ text "Create event" ]
+            |> Modal.header [] [ h5 [] [ text "Create event" ] ]
+            |> Modal.body [] modalBody
             |> Modal.footer []
                 [ Button.button
                     [ Button.secondary
@@ -179,6 +211,7 @@ view model locations =
         newButton =
             Button.button
                 [ Button.outlineSuccess
+                , Button.block
                 , Button.attrs [ onClick openModal ]
                 ]
                 [ text "Create event" ]
