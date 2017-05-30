@@ -77,35 +77,40 @@ newForm model =
 
         nameFormGroupAttrs =
             if hasNameErrors then
-                []
+                [ Form.groupDanger ]
             else
-                [ ]
+                []
 
         nameInputAttrs =
             if hasNameErrors then
-                []
+                [ Input.danger ]
             else
                 []
+
+        nameErrors =
+            List.map (\e -> Form.validationText [] [ text e ]) model.errors.name
+
+        nameFormGroup =
+            [ Form.label [ for "new-event-form-name" ] [ text "Event name" ]
+            , Input.text
+                (List.concat
+                    [ [ Input.id "new-event-form-name"
+                      , Input.attrs
+                            [ placeholder "New event..."
+                            , value newEvent.name
+                            , onInput updateName
+                            , disabled model.submitting
+                            ]
+                      ]
+                    , nameInputAttrs
+                    ]
+                )
+            ]
 
         modalBody =
             [ modalHeader
             , Form.form [ onSubmit submit ]
-                [ Form.group nameFormGroupAttrs
-                    [ Form.label [ for "new-event-form-name" ] [ text "Event name" ]
-                    , Input.text
-                        (List.concat
-                            [ [ Input.id "new-event-form-name"
-                              , Input.attrs
-                                    [ placeholder "New event..."
-                                    , value newEvent.name
-                                    , onInput updateName
-                                    , disabled model.submitting
-                                    ]
-                              ]
-                            , nameInputAttrs
-                            ]
-                        )
-                    ]
+                [ Form.group nameFormGroupAttrs (List.concat [ nameFormGroup, nameErrors ])
                 ]
             ]
     in
