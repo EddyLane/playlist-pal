@@ -17,7 +17,7 @@ services:
       - PG_DATABASE=elixir_elm_bootstrap
       - PG_PASSWORD=postgres
     volumes:
-      - elixir:/app
+      - ./:/app
     ports:
       - "4000:4000"
       #- "4001:4001"
@@ -41,11 +41,13 @@ services:
   #    - postgres
 
   webpack:
-    image: playlist-pal/web
+    build:
+      context: .
+      dockerfile: Dockerfile
     command: ./node_modules/.bin/webpack-dev-server --host 0.0.0.0 --port 4001 --colors
     tty: true
     volumes:
-      - elixir:/app
+      - ./:/app
     ports:
      - 4001:4001
 
@@ -55,4 +57,4 @@ services:
       - "5432"
 
 volumes:
-  elixir: ~
+  elixir:
