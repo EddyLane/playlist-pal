@@ -5,6 +5,7 @@ import App.Model exposing (..)
 import App.Session.Update as Session
 import App.SearchForm.Update as SearchForm
 import App.Events.Update as Events
+import App.LoginForm.Update as LoginForm
 import App.Events.Msg as EventsMsg
 import UrlParser as Url exposing (parseHash)
 
@@ -32,6 +33,13 @@ update msg model =
                     Events.update msg model.events
             in
                 ( { model | events = events }, cmd )
+
+        MsgForLoginForm msg ->
+            let
+                ( loginForm, cmd ) =
+                    LoginForm.update msg model.loginForm
+            in
+                ( { model | loginForm = loginForm }, cmd )
 
         UrlChange location ->
             ( { model

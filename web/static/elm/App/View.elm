@@ -3,15 +3,13 @@ module App.View exposing (..)
 import Html exposing (..)
 import App.Model exposing (..)
 import App.Msg exposing (Msg)
-import App.Session.View as Session
+
+
+--import App.Session.View as Session
+
 import App.Events.View as Events
-import Navigation
+import App.LoginForm.View as LoginForm
 import Bootstrap.Grid as Grid
-
-
-viewLocation : Navigation.Location -> Html msg
-viewLocation location =
-    li [] [ text (location.pathname ++ location.hash) ]
 
 
 page : Model -> Html Msg
@@ -28,13 +26,22 @@ page model =
 
         history =
             model.history
-    in
-        case (Maybe.withDefault Nothing (List.head history)) of
-            Just (Event _) ->
-                Events.view events history
 
-            _ ->
-                Events.view events history
+        initialising =
+            session.initialising
+
+        display =
+            Events.view events history
+    in
+        if initialising then
+            div [] [ text "Loading..." ]
+        else
+            case session.token of
+                Just token ->
+                    display
+
+                _ ->
+                    LoginForm.view model.loginForm
 
 
 view : Model -> Html Msg
@@ -42,8 +49,7 @@ view model =
     Grid.container []
         [ Grid.row []
             [ Grid.col []
-                [ Session.view model.session
-                , page model
+                [ page model
                 ]
             ]
         ]

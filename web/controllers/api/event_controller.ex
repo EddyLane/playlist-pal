@@ -1,4 +1,5 @@
-defmodule ElixirElmBootstrap.EventController do
+defmodule ElixirElmBootstrap.API.EventController do
+
   use ElixirElmBootstrap.Web, :controller
   use Guardian.Phoenix.Controller
 

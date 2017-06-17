@@ -11,7 +11,8 @@ type alias User =
 
 type alias Model =
     { user : Maybe User
-    , token : String
+    , token : Maybe String
+    , initialising : Bool
     }
 
 
@@ -23,8 +24,9 @@ userDecoder =
         (Decode.at [ "name" ] Decode.string)
 
 
-initialModel : String -> Model
-initialModel token =
+initialModel : Model
+initialModel =
     { user = Nothing
-    , token = token
+    , token = Nothing
+    , initialising = True
     }

@@ -1,4 +1,5 @@
 defmodule ElixirElmBootstrap.Router do
+
   use ElixirElmBootstrap.Web, :router
 
   pipeline :browser do
@@ -46,9 +47,23 @@ defmodule ElixirElmBootstrap.Router do
     get "/app", PageController, :app
   end
 
-   scope "/api", ElixirElmBootstrap do
+  scope "/new", ElixirElmBootstrap do
+    pipe_through [:browser, :browser_session]
+    get "/app", PageController, :app
+  end
+
+   scope "/api", ElixirElmBootstrap.API do
+
      pipe_through [:api, :browser_session, :authenticate_user]
      resources "/events", EventController, except: [:new, :edit]
+
    end
 
+   scope "/api", ElixirElmBootstrap.API do
+
+     pipe_through [:api, :browser_session]
+     get "/token", SessionController, :show
+     post "/login", SessionController, :create, as: :login
+
+   end
 end

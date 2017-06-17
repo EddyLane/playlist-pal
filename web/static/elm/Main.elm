@@ -9,7 +9,7 @@ import App.Msg exposing (..)
 import Time
 import App.Session.View exposing (lobby)
 import App.Events.View exposing (eventChannel)
-import Navigation exposing (programWithFlags)
+import Navigation exposing (programWithFlags, program)
 
 
 socket : String -> Socket Msg
@@ -30,11 +30,13 @@ phoenixSubscription model =
 
                 Nothing ->
                     [ lobby ]
-
-        phoenixSocket =
-            socket model.session.token
     in
-        Phoenix.connect phoenixSocket subs
+        case model.session.token of
+            Just token ->
+                Phoenix.connect (socket token) subs
+
+            Nothing ->
+                Sub.none
 
 
 subscriptions : Model -> Sub Msg
