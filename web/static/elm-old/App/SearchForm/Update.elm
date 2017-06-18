@@ -21,8 +21,7 @@ searchSpotify term =
                     |> Decode.at [ "tracks" ]
                 )
     in
-        Http.send (\result -> SearchResults result |> BaseMsg.MsgForSearchForm) request
-
+        Http.send (SearchResults >> BaseMsg.MsgForSearchForm) request
 
 update : Msg -> Model -> ( Model, Cmd BaseMsg.Msg )
 update msg searchForm =

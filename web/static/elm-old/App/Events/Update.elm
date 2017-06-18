@@ -12,11 +12,9 @@ import Bootstrap.Modal as Modal
 import Navigation
 import Http
 
-
 url : String
 url =
     "/api/events"
-
 
 getEvents : Cmd BaseMsg.Msg
 getEvents =
@@ -24,7 +22,7 @@ getEvents =
         request =
             Http.get url (Decode.list eventDecoder |> Decode.at [ "data" ])
     in
-        Http.send (\result -> SetEvents result |> BaseMsg.MsgForEvents) request
+        Http.send (SetEvents >> BaseMsg.MsgForEvents) request
 
 
 encodeEvent : String -> Encode.Value
@@ -42,7 +40,7 @@ postEvent json =
         request =
             Http.post url (Http.jsonBody (json)) (Decode.at [ "data" ] eventDecoder)
     in
-        Http.send (\result -> CreateEventRequest result |> BaseMsg.MsgForEvents) request
+        Http.send (CreateEventRequest >> BaseMsg.MsgForEvents) request
 
 
 isIdentical : Event -> Event -> Bool

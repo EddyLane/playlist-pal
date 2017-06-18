@@ -51,11 +51,6 @@ newForm model =
                 |> EventsMsg.CreateEvent
                 |> MsgForEvents
 
-        updateName newName =
-            newName
-                |> EventsMsg.NewFormName
-                |> MsgForEvents
-
         closeModal =
             Modal.hiddenState
                 |> EventsMsg.FormModal
@@ -68,9 +63,8 @@ newForm model =
             case model.hasError of
                 Just err ->
                     Alert.danger [ text "Uhoh! Attempt to create your event seems to have failed.." ]
-
                 _ ->
-                    div [] []
+                    text ""
 
         hasNameErrors =
             (List.length model.errors.name) > 0
@@ -98,7 +92,7 @@ newForm model =
                       , Input.attrs
                             [ placeholder "New event..."
                             , value newEvent.name
-                            , onInput updateName
+                            , onInput (EventsMsg.NewFormName >> MsgForEvents)
                             , disabled model.submitting
                             ]
                       ]
@@ -114,7 +108,7 @@ newForm model =
                 ]
             ]
     in
-        Modal.config (\e -> e |> EventsMsg.FormModal |> MsgForEvents)
+        Modal.config (EventsMsg.FormModal >> MsgForEvents)
             |> Modal.small
             |> Modal.h3 [] [ text "Create event" ]
             |> Modal.header [] [ h5 [] [ text "Create event" ] ]

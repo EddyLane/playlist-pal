@@ -44,4 +44,4 @@ guardianTokenRequest =
         request =
             Http.get url Decode.string
     in
-        Http.send (\r -> SetToken r |> BaseMsg.MsgForSession) request
+        Http.send (SetToken >> BaseMsg.MsgForSession) request

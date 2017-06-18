@@ -4,21 +4,12 @@ import Html exposing (..)
 import Phoenix.Channel as Channel exposing (Channel)
 import App.Session.Msg as Session
 import App.Msg exposing (..)
-import Json.Encode
 import App.Session.Model as Model
-
-
-onJoin : Json.Encode.Value -> Msg
-onJoin user =
-    user
-        |> Session.UserConnected
-        |> MsgForSession
-
 
 lobby : Channel Msg
 lobby =
     Channel.init "me"
-        |> Channel.onJoin onJoin
+        |> Channel.onJoin (Session.UserConnected >> MsgForSession)
         |> Channel.withDebug
 
 

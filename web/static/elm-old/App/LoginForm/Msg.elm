@@ -4,7 +4,7 @@ import Http
 
 
 type Msg
-    = Username String
-    | Password String
+    = SetUsername String
+    | SetPassword String
     | SubmitLogin
     | SubmitLoginResponse (Result Http.Error String)
