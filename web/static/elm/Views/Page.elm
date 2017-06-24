@@ -6,7 +6,7 @@ module Views.Page exposing (frame, ActivePage(..), bodyId)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Route exposing (Route)
-import Data.User as User exposing (User, Username)
+import Data.User as User exposing (User, Username, usernameToHtml)
 --import Data.UserPhoto as UserPhoto exposing (UserPhoto)
 import Html.Lazy exposing (lazy2)
 import Views.Spinner exposing (spinner)
@@ -49,7 +49,7 @@ viewHeader page user isLoading =
     nav [ class "navbar navbar-light" ]
         [ div [ class "container" ]
             [ a [ class "navbar-brand", Route.href Route.Home ]
-                [ text "conduit" ]
+                [ text "PlaylistPal" ]
             , ul [ class "nav navbar-nav pull-xs-right" ] <|
                 lazy2 Util.viewIf isLoading spinner
                     :: (navbarLink (page == Home) Route.Home [ text "Home" ])
@@ -62,24 +62,21 @@ viewSignIn : ActivePage -> Maybe User -> List (Html msg)
 viewSignIn page user =
     case user of
         Nothing ->
-            [ text "No user"]
+            [ navbarLink (page == Login) Route.Login [ text "Sign in" ]
+            ]
 
         Just user ->
-            [ text "User" ]
-
+            [ navbarLink
+                True
+                Route.Home
+                [ User.usernameToHtml user.username
+                ]
+            , navbarLink False Route.Logout [ text "Sign out" ]
+            ]
 
 viewFooter : Html msg
 viewFooter =
-    footer []
-        [ div [ class "container" ]
-            [ a [ class "logo-font", href "/" ] [ text "conduit" ]
-            , span [ class "attribution" ]
-                [ text "An interactive learning project from "
-                , a [ href "https://thinkster.io" ] [ text "Thinkster" ]
-                , text ". Code & design licensed under MIT."
-                ]
-            ]
-        ]
+    footer [] []
 
 
 navbarLink : Bool -> Route -> List (Html msg) -> Html msg

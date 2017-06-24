@@ -1,12 +1,13 @@
 defmodule ElixirElmBootstrap.User do
 
   use ElixirElmBootstrap.Web, :model
-  @derive {Poison.Encoder, only: [:name, :username]}
+  @derive {Poison.Encoder, only: [:name, :username, :token]}
 
   schema "users" do
     field :name, :string
     field :username, :string
     field :password, :string, virtual: true
+    field :token, :string, virtual: true
     field :password_hash, :string
 
     has_many :tracks, ElixirElmBootstrap.Track

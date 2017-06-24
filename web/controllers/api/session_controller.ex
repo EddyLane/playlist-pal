@@ -22,7 +22,9 @@ defmodule ElixirElmBootstrap.API.SessionController do
     user = Repo.one(from u in User, where: u.username == ^username)
 
     if user do
+
       changeset = User.login_changeset(user, params["user"])
+
       if changeset.valid? do
 
         new_conn = Guardian.Plug.api_sign_in(conn, user)
@@ -34,16 +36,22 @@ defmodule ElixirElmBootstrap.API.SessionController do
           |> put_resp_header("authorization", "Bearer #{jwt}")
           |> put_resp_header("x-expires", "#{exp}")
           |> Guardian.Plug.sign_in(user, :token, perms: %{ default: Guardian.Permissions.max })
-          |> json(jwt)
+          |> json(%{ user: %{ user | token: jwt }})
 
       else
         conn
-          |> send_resp(400, "Invalid")
+          |> put_status(400)
+          |> render("error.json", changeset: changeset)
       end
 
     else
-      conn |> send_resp(400, "Invalid")
+      changeset = User.login_changeset(%User{}) |> Ecto.Changeset.add_error(:username, "not found")
+
+        conn
+          |> put_status(404)
+          |> render("errorr.json", changeset: changeset)
     end
+
   end
 
 end

@@ -3,17 +3,21 @@ module Main exposing (main)
 import Navigation exposing (Location)
 import Route exposing (Route)
 import Data.Session as Session exposing (Session)
+import Data.User as User exposing (User, Username)
 import Page.Errored as Errored exposing (PageLoadError)
 import Views.Page as Page exposing (ActivePage)
 import Json.Decode as Decode exposing (Value)
+import Page.Login as Login
 import Task
 import Util exposing ((=>))
 import Html exposing (..)
+import Ports
 
 type Page
     = Blank
     | NotFound
     | Errored PageLoadError
+    | Login Login.Model
 
 type PageState
     = Loaded Page
@@ -30,8 +34,14 @@ init : Value -> Location -> ( Model, Cmd Msg )
 init val location =
     setRoute (Route.fromLocation location)
         { pageState = Loaded initialPage
-        , session = { user = Nothing }
+        , session = { user = decodeUserFromJson val }
         }
+decodeUserFromJson : Value -> Maybe User
+decodeUserFromJson json =
+    json
+        |> Decode.decodeValue Decode.string
+        |> Result.toMaybe
+        |> Maybe.andThen (Decode.decodeString User.decoder >> Result.toMaybe)
 
 initialPage : Page
 initialPage =
@@ -55,6 +65,11 @@ viewPage session isLoading page =
     in
         case page of
 
+            Login subModel ->
+                Login.view session subModel
+                    |> frame Page.Other
+                    |> Html.map LoginMsg
+
             _ ->
                 -- This is for the very intiial page load, while we are loading
                 -- data via HTTP. We could also render a spinner here.
@@ -72,14 +87,12 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ pageSubscriptions (getPage model.pageState)
---        , Sub.map SetUser sessionChange
+        , Sub.map SetUser sessionChange
         ]
 
-
---sessionChange : Sub (Maybe User)
---sessionChange =
---    Ports.onSessionChange (Decode.decodeValue User.decoder >> Result.toMaybe)
-
+sessionChange : Sub (Maybe User)
+sessionChange =
+    Ports.onSessionChange (Decode.decodeValue User.decoder >> Result.toMaybe)
 
 getPage : PageState -> Page
 getPage pageState =
@@ -102,6 +115,8 @@ pageSubscriptions page =
 
 type Msg
     = SetRoute (Maybe Route)
+    | LoginMsg Login.Msg
+    | SetUser (Maybe User)
 
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
 setRoute maybeRoute model =
@@ -114,6 +129,20 @@ setRoute maybeRoute model =
             pageErrored model
     in
         case maybeRoute of
+
+            Just Route.Login ->
+                { model | pageState = Loaded (Login Login.initialModel) } => Cmd.none
+
+            Just Route.Logout ->
+                let
+                    session =
+                        model.session
+                in
+                    { model | session = { session | user = Nothing } }
+                        => Cmd.batch
+                            [ Ports.storeSession Nothing
+                            , Route.modifyUrl Route.Home
+                            ]
             _ ->
                 { model | pageState = Loaded NotFound } => Cmd.none
 
@@ -151,14 +180,50 @@ updatePage page msg model =
             ( SetRoute route, _ ) ->
                 setRoute route model
 
---            ( _, NotFound ) ->
---                -- Disregard incoming messages when we're on the
---                -- NotFound page.
---                model => Cmd.none
---
---            ( _, _ ) ->
---                -- Disregard incoming messages that arrived for the wrong page
---                model => Cmd.none
+            ( LoginMsg subMsg, Login subModel ) ->
+                let
+                    ( ( pageModel, cmd ), msgFromPage ) =
+                        Login.update subMsg subModel
+
+                    newModel =
+                        case msgFromPage of
+                            Login.NoOp ->
+                                model
+
+                            Login.SetUser user ->
+                                let
+                                    session =
+                                        model.session
+                                in
+                                    { model | session = { user = Just user } }
+                in
+                    { newModel | pageState = Loaded (Login pageModel) }
+                        => Cmd.map LoginMsg cmd
+
+            ( SetUser user, _ ) ->
+                let
+                    session =
+                        Debug.log "Setting session" model.session
+
+                    cmd =
+                        -- If we just signed out, then redirect to Home.
+                        if session.user /= Nothing && user == Nothing then
+                            Route.modifyUrl Route.Home
+                        else
+                            Cmd.none
+                in
+                    { model | session = { session | user = user } }
+                        => cmd
+
+
+            ( _, NotFound ) ->
+                -- Disregard incoming messages when we're on the
+                -- NotFound page.
+                model => Cmd.none
+
+            ( _, _ ) ->
+                -- Disregard incoming messages that arrived for the wrong page
+                model => Cmd.none
 
 -- MAIN --
 

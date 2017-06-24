@@ -7,11 +7,15 @@ import Html.Attributes as Attr
 
 type Route
     = Home
+    | Login
+    | Logout
 
 route : Parser (Route -> a) a
 route =
     oneOf
         [ Url.map Home (s "")
+        , Url.map Login (s "login")
+        , Url.map Logout (s "logout")
         ]
 
 -- INTERNAL --
@@ -21,9 +25,15 @@ routeToString page =
     let
         pieces =
             case page of
+
                 Home ->
                     []
 
+                Login ->
+                    [ "login" ]
+
+                Logout ->
+                    [ "logout" ]
     in
         "#/" ++ (String.join "/" pieces)
 
