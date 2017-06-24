@@ -7,7 +7,10 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Route exposing (Route)
 import Data.User as User exposing (User, Username, usernameToHtml)
+
+
 --import Data.UserPhoto as UserPhoto exposing (UserPhoto)
+
 import Html.Lazy exposing (lazy2)
 import Views.Spinner exposing (spinner)
 import Util exposing ((=>))
@@ -20,11 +23,11 @@ have links for every page. Anything that's not part of the navbar falls
 under Other.
 
 -}
-
 type ActivePage
     = Other
     | Home
     | Login
+
 
 {-| Take a page's Html and frame it with a header and footer.
 
@@ -73,6 +76,7 @@ viewSignIn page user =
                 ]
             , navbarLink False Route.Logout [ text "Sign out" ]
             ]
+
 
 viewFooter : Html msg
 viewFooter =

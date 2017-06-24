@@ -6,6 +6,7 @@ import Html exposing (Html)
 import Util exposing ((=>))
 import Data.AuthToken as AuthToken exposing (AuthToken)
 
+
 type alias User =
     { username : Username
     , name : String
@@ -21,6 +22,7 @@ decoder =
         (Decode.at [ "name" ] Decode.string)
         (Decode.at [ "token" ] AuthToken.decoder)
 
+
 encode : User -> Value
 encode user =
     Encode.object
@@ -29,15 +31,19 @@ encode user =
         , "token" => AuthToken.encode user.token
         ]
 
+
+
 -- IDENTIFIERS --
 
 
 type Username
     = Username String
 
+
 usernameToString : Username -> String
 usernameToString (Username username) =
     username
+
 
 usernameDecoder : Decoder Username
 usernameDecoder =

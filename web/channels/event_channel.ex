@@ -7,6 +7,10 @@ defmodule ElixirElmBootstrap.EventChannel do
 
     user = current_resource(socket)
 
+    if user.username != username do
+      { :err, socket }
+    end
+
     case user.username do
         username ->
             user_events = user

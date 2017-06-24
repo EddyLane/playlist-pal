@@ -5,6 +5,7 @@ import Route exposing (Route)
 import Data.Session as Session exposing (Session)
 import Data.User as User exposing (User, Username)
 import Page.Errored as Errored exposing (PageLoadError)
+import Channels.UserSocket exposing (phoenixSubscription)
 import Views.Page as Page exposing (ActivePage)
 import Json.Decode as Decode exposing (Value)
 import Page.Login as Login
@@ -13,22 +14,28 @@ import Util exposing ((=>))
 import Html exposing (..)
 import Ports
 
+
 type Page
     = Blank
     | NotFound
     | Errored PageLoadError
     | Login Login.Model
 
+
 type PageState
     = Loaded Page
     | TransitioningFrom Page
 
+
+
 -- MODEL --
+
 
 type alias Model =
     { session : Session
     , pageState : PageState
     }
+
 
 init : Value -> Location -> ( Model, Cmd Msg )
 init val location =
@@ -36,6 +43,8 @@ init val location =
         { pageState = Loaded initialPage
         , session = { user = decodeUserFromJson val }
         }
+
+
 decodeUserFromJson : Value -> Maybe User
 decodeUserFromJson json =
     json
@@ -43,9 +52,11 @@ decodeUserFromJson json =
         |> Result.toMaybe
         |> Maybe.andThen (Decode.decodeString User.decoder >> Result.toMaybe)
 
+
 initialPage : Page
 initialPage =
     Blank
+
 
 view : Model -> Html Msg
 view model =
@@ -64,7 +75,6 @@ viewPage session isLoading page =
             Page.frame isLoading session.user
     in
         case page of
-
             Login subModel ->
                 Login.view session subModel
                     |> frame Page.Other
@@ -77,10 +87,21 @@ viewPage session isLoading page =
                     |> frame Page.Other
 
 
+
 -- SUBSCRIPTIONS --
 -- Note: we aren't currently doing any page subscriptions, but I thought it would
 -- be a good idea to put this in here as an example. If I were actually
 -- maintaining this in production, I wouldn't bother until I needed this!
+
+
+socket : Maybe User -> Sub Msg
+socket maybeUser =
+    case maybeUser of
+        Just user ->
+            phoenixSubscription user
+
+        Nothing ->
+            Sub.none
 
 
 subscriptions : Model -> Sub Msg
@@ -88,11 +109,14 @@ subscriptions model =
     Sub.batch
         [ pageSubscriptions (getPage model.pageState)
         , Sub.map SetUser sessionChange
+        , socket model.session.user
         ]
+
 
 sessionChange : Sub (Maybe User)
 sessionChange =
     Ports.onSessionChange (Decode.decodeValue User.decoder >> Result.toMaybe)
+
 
 getPage : PageState -> Page
 getPage pageState =
@@ -110,6 +134,8 @@ pageSubscriptions page =
         _ ->
             Sub.none
 
+
+
 -- UPDATE --
 
 
@@ -117,6 +143,7 @@ type Msg
     = SetRoute (Maybe Route)
     | LoginMsg Login.Msg
     | SetUser (Maybe User)
+
 
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
 setRoute maybeRoute model =
@@ -129,11 +156,10 @@ setRoute maybeRoute model =
             pageErrored model
     in
         case maybeRoute of
-
-            Just Route.Login ->
+            Just (Route.Login) ->
                 { model | pageState = Loaded (Login Login.initialModel) } => Cmd.none
 
-            Just Route.Logout ->
+            Just (Route.Logout) ->
                 let
                     session =
                         model.session
@@ -143,8 +169,10 @@ setRoute maybeRoute model =
                             [ Ports.storeSession Nothing
                             , Route.modifyUrl Route.Home
                             ]
+
             _ ->
                 { model | pageState = Loaded NotFound } => Cmd.none
+
 
 pageErrored : Model -> ActivePage -> String -> ( Model, Cmd msg )
 pageErrored model activePage errorMessage =
@@ -215,7 +243,6 @@ updatePage page msg model =
                     { model | session = { session | user = user } }
                         => cmd
 
-
             ( _, NotFound ) ->
                 -- Disregard incoming messages when we're on the
                 -- NotFound page.
@@ -224,6 +251,8 @@ updatePage page msg model =
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
                 model => Cmd.none
+
+
 
 -- MAIN --
 

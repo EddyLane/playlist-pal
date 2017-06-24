@@ -5,10 +5,12 @@ import Navigation exposing (Location)
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 
+
 type Route
     = Home
     | Login
     | Logout
+
 
 route : Parser (Route -> a) a
 route =
@@ -18,14 +20,16 @@ route =
         , Url.map Logout (s "logout")
         ]
 
+
+
 -- INTERNAL --
+
 
 routeToString : Route -> String
 routeToString page =
     let
         pieces =
             case page of
-
                 Home ->
                     []
 
@@ -38,7 +42,9 @@ routeToString page =
         "#/" ++ (String.join "/" pieces)
 
 
+
 -- PUBLIC HELPERS --
+
 
 href : Route -> Attribute msg
 href route =

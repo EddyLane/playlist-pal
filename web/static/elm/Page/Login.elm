@@ -17,6 +17,7 @@ import Util exposing ((=>))
 import Data.User as User exposing (User)
 import Request.User exposing (storeSession)
 
+
 -- MODEL --
 
 
@@ -33,6 +34,7 @@ initialModel =
     , username = ""
     , password = ""
     }
+
 
 
 -- VIEW --
@@ -75,6 +77,8 @@ viewForm =
         , button [ class "btn btn-lg btn-primary pull-xs-right" ]
             [ text "Sign in" ]
         ]
+
+
 
 -- UPDATE --
 
@@ -128,7 +132,7 @@ update msg model =
                         _ ->
                             [ "unable to process registration" ]
             in
-                { model | errors = List.map (\errorMessage -> (Form, errorMessage)) errorMessages }
+                { model | errors = List.map (\errorMessage -> ( Form, errorMessage )) errorMessages }
                     => Cmd.none
                     => NoOp
 
@@ -136,8 +140,6 @@ update msg model =
             model
                 => Cmd.batch [ storeSession user, Route.modifyUrl Route.Home ]
                 => SetUser user
-
-
 
 
 

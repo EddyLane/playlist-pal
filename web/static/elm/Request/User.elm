@@ -8,12 +8,14 @@ import Util exposing ((=>))
 import Request.Helpers exposing (apiUrl)
 import Ports
 
+
 storeSession : User -> Cmd msg
 storeSession user =
     User.encode user
         |> Encode.encode 0
         |> Just
         |> Ports.storeSession
+
 
 login : { r | username : String, password : String } -> Http.Request User
 login { username, password } =
