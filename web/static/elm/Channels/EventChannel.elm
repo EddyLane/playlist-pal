@@ -19,7 +19,7 @@ import Phoenix.Channel as Channel exposing (Channel)
 
 eventChannel : Username -> Channel msg
 eventChannel username =
-    Channel.init ("events:eddy_lane")
+    Channel.init ("events:" ++ (usernameToString username))
         --        |> Channel.onJoin onJoin
         --        |> Channel.on "added" onUpdate
         |>

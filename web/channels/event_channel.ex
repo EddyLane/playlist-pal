@@ -7,19 +7,33 @@ defmodule ElixirElmBootstrap.EventChannel do
 
     user = current_resource(socket)
 
+    IO.puts('----------------------------------------');
+    IO.puts('----------------------------------------');
+    IO.puts('----------------------------------------');
+    IO.puts('----------------------------------------');
+
+    IO.puts(user.username)
+    IO.puts(username)
+
+    IO.puts('----------------------------------------');
+    IO.puts('----------------------------------------');
+    IO.puts('----------------------------------------');
+    IO.puts('----------------------------------------');
+
     if user.username != username do
-      { :err, socket }
+
+      { :error, "not allowed" }
+
+    else
+        user_events = user
+            |> assoc(:events)
+            |> Repo.all
+
+        {:ok, user_events, socket}
     end
 
-    case user.username do
-        username ->
-            user_events = user
-                |> assoc(:events)
-                |> Repo.all
-            {:ok, user_events, socket}
-        _ ->
-            {:err, socket }
-    end
+
+
 
   end
 

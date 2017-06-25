@@ -2,9 +2,9 @@ module Channels.UserSocket exposing (phoenixSubscription)
 
 import Phoenix exposing (connect)
 import Phoenix.Socket as Socket exposing (Socket)
+import Phoenix.Channel as Channel exposing (Channel)
 import Data.AuthToken exposing (AuthToken, tokenToString)
 import Data.User exposing (User)
-import Channels.EventChannel exposing (eventChannel)
 
 
 socket : AuthToken -> Socket a
@@ -15,9 +15,8 @@ socket token =
         |> Socket.withDebug
 
 
-phoenixSubscription : User -> Sub a
-phoenixSubscription user =
+phoenixSubscription : User -> List (Channel a) -> Sub a
+phoenixSubscription user channels =
     Phoenix.connect
         (socket user.token)
-        [ user.username |> eventChannel
-        ]
+        channels

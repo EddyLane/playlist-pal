@@ -4,8 +4,11 @@ import Navigation exposing (Location)
 import Route exposing (Route)
 import Data.Session as Session exposing (Session)
 import Data.User as User exposing (User, Username)
+import Data.Event as Event exposing (Event)
 import Page.Errored as Errored exposing (PageLoadError)
 import Channels.UserSocket exposing (phoenixSubscription)
+import Channels.EventChannel exposing (eventChannel)
+import Phoenix.Channel as Channel exposing (Channel)
 import Views.Page as Page exposing (ActivePage)
 import Json.Decode as Decode exposing (Value)
 import Page.Login as Login
@@ -34,6 +37,7 @@ type PageState
 type alias Model =
     { session : Session
     , pageState : PageState
+    , events : List Event
     }
 
 
@@ -42,6 +46,7 @@ init val location =
     setRoute (Route.fromLocation location)
         { pageState = Loaded initialPage
         , session = { user = decodeUserFromJson val }
+        , events = []
         }
 
 
@@ -96,12 +101,18 @@ viewPage session isLoading page =
 
 socket : Maybe User -> Sub Msg
 socket maybeUser =
-    case maybeUser of
-        Just user ->
-            phoenixSubscription user
+    let
+        events user =
+            user.username
+                |> eventChannel
+                |> Channel.onJoin SetEvents
+    in
+        case maybeUser of
+            Just user ->
+                phoenixSubscription user [(events user)]
 
-        Nothing ->
-            Sub.none
+            Nothing ->
+                Sub.none
 
 
 subscriptions : Model -> Sub Msg
@@ -143,7 +154,7 @@ type Msg
     = SetRoute (Maybe Route)
     | LoginMsg Login.Msg
     | SetUser (Maybe User)
-
+    | SetEvents (List Event)
 
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
 setRoute maybeRoute model =
@@ -172,6 +183,7 @@ setRoute maybeRoute model =
 
             _ ->
                 { model | pageState = Loaded NotFound } => Cmd.none
+
 
 
 pageErrored : Model -> ActivePage -> String -> ( Model, Cmd msg )
@@ -242,6 +254,10 @@ updatePage page msg model =
                 in
                     { model | session = { session | user = user } }
                         => cmd
+
+            ( SetEvents events, _ ) ->
+                { model | events = events }
+                    => Cmd.none
 
             ( _, NotFound ) ->
                 -- Disregard incoming messages when we're on the
