@@ -12,10 +12,12 @@ import Phoenix.Channel as Channel exposing (Channel)
 import Views.Page as Page exposing (ActivePage)
 import Json.Decode as Decode exposing (Value)
 import Page.Login as Login
+import Page.Events as Events
 import Task
 import Util exposing ((=>))
 import Html exposing (..)
 import Ports
+import Json.Encode as Encode
 
 
 type Page
@@ -23,7 +25,7 @@ type Page
     | NotFound
     | Errored PageLoadError
     | Login Login.Model
-
+    | Events Events.Model
 
 type PageState
     = Loaded Page
@@ -37,7 +39,6 @@ type PageState
 type alias Model =
     { session : Session
     , pageState : PageState
-    , events : List Event
     }
 
 
@@ -45,8 +46,7 @@ init : Value -> Location -> ( Model, Cmd Msg )
 init val location =
     setRoute (Route.fromLocation location)
         { pageState = Loaded initialPage
-        , session = { user = decodeUserFromJson val }
-        , events = []
+        , session = { user = decodeUserFromJson val, events = [] }
         }
 
 
@@ -85,6 +85,11 @@ viewPage session isLoading page =
                     |> frame Page.Other
                     |> Html.map LoginMsg
 
+            Events subModel ->
+                Events.view session subModel
+                    |> frame Page.Events
+                    |> Html.map EventsMsg
+
             _ ->
                 -- This is for the very intiial page load, while we are loading
                 -- data via HTTP. We could also render a spinner here.
@@ -105,7 +110,7 @@ socket maybeUser =
         events user =
             user.username
                 |> eventChannel
-                |> Channel.onJoin SetEvents
+                |> Channel.onJoin EventChannelJoined
     in
         case maybeUser of
             Just user ->
@@ -153,8 +158,9 @@ pageSubscriptions page =
 type Msg
     = SetRoute (Maybe Route)
     | LoginMsg Login.Msg
+    | EventsMsg Events.Msg
     | SetUser (Maybe User)
-    | SetEvents (List Event)
+    | EventChannelJoined Encode.Value
 
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
 setRoute maybeRoute model =
@@ -169,6 +175,9 @@ setRoute maybeRoute model =
         case maybeRoute of
             Just (Route.Login) ->
                 { model | pageState = Loaded (Login Login.initialModel) } => Cmd.none
+
+            Just (Route.Events) ->
+                { model | pageState = Loaded (Events Events.initialModel) } => Cmd.none
 
             Just (Route.Logout) ->
                 let
@@ -234,8 +243,12 @@ updatePage page msg model =
                                 let
                                     session =
                                         model.session
+
+                                    updateSession =
+                                        { session | user = Just user }
+
                                 in
-                                    { model | session = { user = Just user } }
+                                    { model | session = updateSession }
                 in
                     { newModel | pageState = Loaded (Login pageModel) }
                         => Cmd.map LoginMsg cmd
@@ -255,9 +268,23 @@ updatePage page msg model =
                     { model | session = { session | user = user } }
                         => cmd
 
-            ( SetEvents events, _ ) ->
-                { model | events = events }
-                    => Cmd.none
+            (EventChannelJoined eventsJson, _) ->
+                let
+
+                    session =
+                        model.session
+
+                    events =
+                        (Decode.decodeValue (Decode.list Event.decoder) eventsJson)
+                            |> Result.withDefault model.session.events
+
+                    updatedSession =
+                        { session | events = events }
+
+                in
+                    { model | session = updatedSession }
+                        => Cmd.none
+
 
             ( _, NotFound ) ->
                 -- Disregard incoming messages when we're on the
@@ -267,8 +294,6 @@ updatePage page msg model =
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
                 model => Cmd.none
-
-
 
 -- MAIN --
 

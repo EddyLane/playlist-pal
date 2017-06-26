@@ -27,6 +27,7 @@ type ActivePage
     = Other
     | Home
     | Login
+    | Events
 
 
 {-| Take a page's Html and frame it with a header and footer.
@@ -75,6 +76,7 @@ viewSignIn page user =
                 [ User.usernameToHtml user.username
                 ]
             , navbarLink False Route.Logout [ text "Sign out" ]
+            , navbarLink False Route.Events [ text "Events" ]
             ]
 
 

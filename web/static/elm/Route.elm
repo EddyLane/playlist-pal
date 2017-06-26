@@ -10,7 +10,7 @@ type Route
     = Home
     | Login
     | Logout
-
+    | Events
 
 route : Parser (Route -> a) a
 route =
@@ -18,6 +18,7 @@ route =
         [ Url.map Home (s "")
         , Url.map Login (s "login")
         , Url.map Logout (s "logout")
+        , Url.map Events (s "events")
         ]
 
 
@@ -38,6 +39,9 @@ routeToString page =
 
                 Logout ->
                     [ "logout" ]
+
+                Events ->
+                    [ "events" ]
     in
         "#/" ++ (String.join "/" pieces)
 
