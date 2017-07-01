@@ -12,6 +12,7 @@ type Route
     | Logout
     | Events
 
+
 route : Parser (Route -> a) a
 route =
     oneOf

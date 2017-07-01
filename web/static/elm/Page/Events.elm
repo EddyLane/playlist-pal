@@ -7,12 +7,19 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Data.Session as Session exposing (Session)
+import Data.Event as Event exposing (Event)
+import Request.Events exposing (create)
+import Bootstrap.Grid as Grid
+import Bootstrap.ListGroup as ListGroup
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as Input
 import Bootstrap.Button as Button
 import Util exposing ((=>))
+import Http
+
 
 -- MODEL --
+
 
 type alias Model =
     { submitting : Bool
@@ -26,16 +33,24 @@ initialModel =
     , name = ""
     }
 
+
+
 -- UPDATE
+
 
 type Msg
     = SubmitForm
     | SetName String
+    | CreateEventCompleted (Result Http.Error Event)
+
 
 type ExternalMsg
     = NoOp
 
+
+
 -- VIEW --
+
 
 form : Model -> Html Msg
 form model =
@@ -45,6 +60,7 @@ form model =
             , Input.text
                 [ Input.attrs
                     [ value model.name
+                    , onInput SetName
                     ]
                 , Input.id "name"
                 ]
@@ -52,31 +68,61 @@ form model =
         , Button.button
             [ Button.primary
             , Button.attrs
-                [ type_ "button"
+                [ type_ "submit"
                 , disabled model.submitting
                 ]
             ]
             [ text "Submit" ]
         ]
 
+
+eventItem : Event -> ListGroup.CustomItem Msg
+eventItem event =
+    let
+        attrs =
+            [ ListGroup.attrs [ href ("#event/" ++ event.slug) ] ]
+    in
+        ListGroup.anchor attrs [ text event.name ]
+
+
+eventList : List Event -> Html Msg
+eventList events =
+    ListGroup.custom (List.map eventItem events)
+
+
 view : Session -> Model -> Html Msg
 view session model =
-    div [ class "auth-page" ]
-        [ form model ]
+    Grid.container []
+        [ Grid.row []
+            [ Grid.col [] [ form model ]
+            , Grid.col [] [ eventList session.events ]
+            ]
+        ]
+
 
 
 -- UPDATE --
 
+
 update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 update msg model =
     case msg of
-
         SetName name ->
             { model | name = name }
                 => Cmd.none
                 => NoOp
 
         SubmitForm ->
+            model
+                => Http.send CreateEventCompleted (Request.Events.create { name = model.name })
+                => NoOp
+
+        CreateEventCompleted (Err err) ->
+            model
+                => Cmd.none
+                => NoOp
+
+        CreateEventCompleted (Ok event) ->
             model
                 => Cmd.none
                 => NoOp

@@ -2,11 +2,13 @@ module Data.Event exposing (Event, decoder)
 
 import Json.Decode as Decode exposing (Decoder)
 
+
 type alias Event =
     { id : Int
     , name : String
     , slug : String
     }
+
 
 decoder : Decoder Event
 decoder =

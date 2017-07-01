@@ -9,13 +9,6 @@ import Route exposing (Route)
 import Data.User as User exposing (User, Username, usernameToHtml)
 
 
---import Data.UserPhoto as UserPhoto exposing (UserPhoto)
-
-import Html.Lazy exposing (lazy2)
-import Views.Spinner exposing (spinner)
-import Util exposing ((=>))
-
-
 {-| Determines which navbar link (if any) will be rendered as active.
 
 Note that we don't enumerate every page here, because the navbar doesn't
@@ -42,53 +35,14 @@ in the header. (This comes up during slow page transitions.)
 frame : Bool -> Maybe User -> ActivePage -> Html msg -> Html msg
 frame isLoading user page content =
     div [ class "page-frame" ]
-        [ viewHeader page user isLoading
-        , content
+        [ content
         , viewFooter
         ]
-
-
-viewHeader : ActivePage -> Maybe User -> Bool -> Html msg
-viewHeader page user isLoading =
-    nav [ class "navbar navbar-light" ]
-        [ div [ class "container" ]
-            [ a [ class "navbar-brand", Route.href Route.Home ]
-                [ text "PlaylistPal" ]
-            , ul [ class "nav navbar-nav pull-xs-right" ] <|
-                lazy2 Util.viewIf isLoading spinner
-                    :: (navbarLink (page == Home) Route.Home [ text "Home" ])
-                    :: viewSignIn page user
-            ]
-        ]
-
-
-viewSignIn : ActivePage -> Maybe User -> List (Html msg)
-viewSignIn page user =
-    case user of
-        Nothing ->
-            [ navbarLink (page == Login) Route.Login [ text "Sign in" ]
-            ]
-
-        Just user ->
-            [ navbarLink
-                True
-                Route.Home
-                [ User.usernameToHtml user.username
-                ]
-            , navbarLink False Route.Logout [ text "Sign out" ]
-            , navbarLink False Route.Events [ text "Events" ]
-            ]
 
 
 viewFooter : Html msg
 viewFooter =
     footer [] []
-
-
-navbarLink : Bool -> Route -> List (Html msg) -> Html msg
-navbarLink isActive route linkContent =
-    li [ classList [ ( "nav-item", True ), ( "active", isActive ) ] ]
-        [ a [ class "nav-link", Route.href route ] linkContent ]
 
 
 {-| This id comes from index.html.

@@ -37,6 +37,7 @@ viewIf condition content =
     else
         Html.text ""
 
+
 onClickStopPropagation : msg -> Attribute msg
 onClickStopPropagation msg =
     onWithOptions "click"
