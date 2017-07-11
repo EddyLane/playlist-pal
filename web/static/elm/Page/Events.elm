@@ -16,6 +16,8 @@ import Bootstrap.Form.Input as Input
 import Bootstrap.Button as Button
 import Util exposing ((=>))
 import Http
+import Validate exposing (..)
+import Views.Form as Form
 
 
 -- MODEL --
@@ -24,6 +26,7 @@ import Http
 type alias Model =
     { submitting : Bool
     , name : String
+    , errors: List Error
     }
 
 
@@ -31,6 +34,7 @@ initialModel : Model
 initialModel =
     { submitting = False
     , name = ""
+    , errors = []
     }
 
 
@@ -94,7 +98,10 @@ view : Session -> Model -> Html Msg
 view session model =
     Grid.container []
         [ Grid.row []
-            [ Grid.col [] [ form model ]
+            [ Grid.col []
+                [ Form.viewErrors model.errors
+                , form model
+                ]
             , Grid.col [] [ eventList session.events ]
             ]
         ]
@@ -113,12 +120,19 @@ update msg model =
                 => NoOp
 
         SubmitForm ->
-            model
-                => Http.send CreateEventCompleted (Request.Events.create { name = model.name })
-                => NoOp
+
+            case validate model of
+                [] ->
+                    { model | errors = [], submitting = True }
+                        => Http.send CreateEventCompleted (Request.Events.create { name = model.name })
+                        => NoOp
+                errors ->
+                    { model | errors = errors }
+                        => Cmd.none
+                        => NoOp
 
         CreateEventCompleted (Err err) ->
-            model
+            { model | submitting = False, name = "" }
                 => Cmd.none
                 => NoOp
 
@@ -126,3 +140,17 @@ update msg model =
             model
                 => Cmd.none
                 => NoOp
+
+-- VALIDATION --
+
+type Field
+    = Name
+
+type alias Error =
+    ( Field, String )
+
+validate : Model -> List Error
+validate =
+    Validate.all
+        [ .name >> ifBlank (Name => "Please give your event a name.")
+        ]

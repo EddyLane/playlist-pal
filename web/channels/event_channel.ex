@@ -7,23 +7,8 @@ defmodule ElixirElmBootstrap.EventChannel do
 
     user = current_resource(socket)
 
-    IO.puts('----------------------------------------');
-    IO.puts('----------------------------------------');
-    IO.puts('----------------------------------------');
-    IO.puts('----------------------------------------');
-
-    IO.puts(user.username)
-    IO.puts(username)
-
-    IO.puts('----------------------------------------');
-    IO.puts('----------------------------------------');
-    IO.puts('----------------------------------------');
-    IO.puts('----------------------------------------');
-
     if user.username != username do
-
       { :error, "not allowed" }
-
     else
         user_events = user
             |> assoc(:events)
@@ -31,9 +16,6 @@ defmodule ElixirElmBootstrap.EventChannel do
 
         {:ok, user_events, socket}
     end
-
-
-
 
   end
 

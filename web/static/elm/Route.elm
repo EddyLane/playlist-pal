@@ -10,6 +10,7 @@ type Route
     = Home
     | Login
     | Logout
+    | Register
     | Events
 
 
@@ -19,6 +20,7 @@ route =
         [ Url.map Home (s "")
         , Url.map Login (s "login")
         , Url.map Logout (s "logout")
+        , Url.map Register (s "register")
         , Url.map Events (s "events")
         ]
 
@@ -43,6 +45,10 @@ routeToString page =
 
                 Events ->
                     [ "events" ]
+
+                Register ->
+                    [ "register" ]
+
     in
         "#/" ++ (String.join "/" pieces)
 

@@ -41,7 +41,8 @@ defmodule ElixirElmBootstrap.Mixfile do
      {:guardian, "~> 0.14"},
      {:comeonin, "~> 2.0"},
      {:poison, "~> 2.0"},
-     {:ecto_autoslug_field, "~> 0.2"}]
+     {:ecto_autoslug_field, "~> 0.2"},
+     {:exfmt, "~> 0.2"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

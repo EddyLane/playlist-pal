@@ -2,7 +2,7 @@
 
 # Starting from the official Elixir 1.3.4 image:
 # https://hub.docker.com/_/elixir/
-FROM elixir:1.3.4
+FROM elixir:1.4
 MAINTAINER Eddy Lane <naedin@gmail.com>
 WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive

@@ -13,6 +13,7 @@ import Views.Page as Page exposing (ActivePage)
 import Json.Decode as Decode exposing (Value)
 import Page.Login as Login
 import Page.Events as Events
+import Page.Register as Register
 import Task
 import Util exposing ((=>))
 import Html exposing (..)
@@ -26,6 +27,7 @@ type Page
     | NotFound
     | Errored PageLoadError
     | Login Login.Model
+    | Register Register.Model
     | Events Events.Model
 
 
@@ -95,11 +97,18 @@ view model =
                 ]
 
 
-activePage : Page -> ActivePage
-activePage page =
+pageToActivePage : Page -> ActivePage
+pageToActivePage page =
     case page of
+
         Events _ ->
             Page.Events
+
+        Login _ ->
+            Page.Login
+
+        Register _ ->
+            Page.Register
 
         _ ->
             Page.Other
@@ -108,7 +117,7 @@ activePage page =
 viewHeader : Model -> Bool -> Page -> Html Msg
 viewHeader model isLoading page =
     page
-        |> activePage
+        |> pageToActivePage
         |> Header.viewHeader model.header model.session.user isLoading
         |> Html.map HeaderMsg
 
@@ -124,23 +133,32 @@ viewPage model isLoading page =
 
         frame =
             Page.frame isLoading user
+
+        activePage =
+            pageToActivePage page
+
     in
         case page of
             Login subModel ->
                 Login.view session subModel
-                    |> frame (activePage page)
+                    |> frame activePage
                     |> Html.map LoginMsg
+
+            Register subModel ->
+                Register.view session subModel
+                    |> frame activePage
+                    |> Html.map RegisterMsg
 
             Events subModel ->
                 Events.view session subModel
-                    |> frame (activePage page)
+                    |> frame activePage
                     |> Html.map EventsMsg
 
             _ ->
                 -- This is for the very intiial page load, while we are loading
                 -- data via HTTP. We could also render a spinner here.
                 Html.text ""
-                    |> frame Page.Other
+                    |> frame activePage
 
 
 
@@ -150,17 +168,25 @@ viewPage model isLoading page =
 -- maintaining this in production, I wouldn't bother until I needed this!
 
 
-socket : Maybe User -> Sub Msg
-socket maybeUser =
+socket : Page -> Maybe User -> Sub Msg
+socket page maybeUser =
     let
         events user =
             user.username
                 |> eventChannel
                 |> Channel.onJoin EventChannelJoined
+                |> Channel.on "added" EventChannelUpdated
+
+        channels user =
+            case page of
+                Events _ ->
+                    [(events user)]
+                _ ->
+                    []
     in
         case maybeUser of
             Just user ->
-                phoenixSubscription user [ (events user) ]
+                phoenixSubscription user (channels user)
 
             Nothing ->
                 Sub.none
@@ -179,12 +205,15 @@ subscriptions model =
             Header.subscriptions model.header
                 |> Sub.map HeaderMsg
 
+        page =
+            getPage model.pageState
+
     in
         Sub.batch
-            [ pageSubscriptions (getPage model.pageState)
+            [ pageSubscriptions page user
             , Sub.map SetUser sessionChange
-            , socket user
             , header
+            , socket page user
             ]
 
 
@@ -203,9 +232,10 @@ getPage pageState =
             page
 
 
-pageSubscriptions : Page -> Sub Msg
-pageSubscriptions page =
+pageSubscriptions : Page -> Maybe User -> Sub Msg
+pageSubscriptions page maybeUser =
     case page of
+
         _ ->
             Sub.none
 
@@ -213,15 +243,15 @@ pageSubscriptions page =
 
 -- UPDATE --
 
-
 type Msg
     = SetRoute (Maybe Route)
     | LoginMsg Login.Msg
+    | RegisterMsg Register.Msg
     | EventsMsg Events.Msg
     | HeaderMsg Header.Msg
     | SetUser (Maybe User)
+    | EventChannelUpdated Encode.Value
     | EventChannelJoined Encode.Value
-
 
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
 setRoute maybeRoute model =
@@ -234,13 +264,16 @@ setRoute maybeRoute model =
             pageErrored model
     in
         case maybeRoute of
-            Just (Route.Login) ->
+            Just Route.Login ->
                 { model | pageState = Loaded (Login Login.initialModel) } => Cmd.none
 
-            Just (Route.Events) ->
+            Just Route.Register ->
+                { model | pageState = Loaded (Register Register.initialModel) } => Cmd.none
+
+            Just Route.Events ->
                 { model | pageState = Loaded (Events Events.initialModel) } => Cmd.none
 
-            Just (Route.Logout) ->
+            Just Route.Logout ->
                 let
                     session =
                         model.session
@@ -312,6 +345,29 @@ updatePage page msg model =
                     { newModel | pageState = Loaded (Login pageModel) }
                         => Cmd.map LoginMsg cmd
 
+            ( RegisterMsg subMsg, Register subModel ) ->
+                let
+                    ( ( pageModel, cmd ), msgFromPage ) =
+                        Register.update subMsg subModel
+
+                    newModel =
+                        case msgFromPage of
+                            Register.NoOp ->
+                                model
+
+                            Register.SetUser user ->
+                                let
+                                    session =
+                                        model.session
+
+                                    updateSession =
+                                        { session | user = Just user }
+                                in
+                                    { model | session = updateSession }
+                in
+                    { newModel | pageState = Loaded (Register pageModel) }
+                        => Cmd.map RegisterMsg cmd
+
             ( EventsMsg subMsg, Events subModel ) ->
                 let
                     ( ( pageModel, cmd ), msgFromPage ) =
@@ -343,6 +399,23 @@ updatePage page msg model =
                     { model | session = { session | user = user } }
                         => cmd
 
+            ( EventChannelUpdated eventJson, _ ) ->
+                let
+                    session =
+                        model.session
+
+                    events =
+                        case (Decode.decodeValue Event.decoder eventJson) of
+                            Ok event -> event :: session.events
+                            _ -> session.events
+
+                    updatedSession =
+                        { session | events = events }
+                in
+                    { model | session = updatedSession }
+                        => Cmd.none
+
+
             ( EventChannelJoined eventsJson, _ ) ->
                 let
                     session =
@@ -350,7 +423,7 @@ updatePage page msg model =
 
                     events =
                         (Decode.decodeValue (Decode.list Event.decoder) eventsJson)
-                            |> Result.withDefault model.session.events
+                            |> Result.withDefault session.events
 
                     updatedSession =
                         { session | events = events }

@@ -5,8 +5,6 @@ import Util exposing ((=>))
 import Views.Page as Page exposing (ActivePage(..))
 import Data.User as User exposing (User, Username, usernameToHtml)
 import Bootstrap.Navbar as Navbar
-import Html.Lazy exposing (lazy2)
-import Views.Spinner exposing (spinner)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Route exposing (Route)
@@ -33,9 +31,11 @@ initialState =
         { navbarState = navbarState }
             => navbarCmd
 
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Navbar.subscriptions model.navbarState NavbarMsg
+
 
 update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 update msg model =
@@ -51,47 +51,34 @@ viewHeader model user isLoading page =
     Navbar.config NavbarMsg
         |> Navbar.withAnimation
         |> Navbar.brand [ Route.href Route.Home ] [ text "PlaylistPal" ]
-        |> Navbar.items
-            [ Navbar.itemLink [ Route.href Route.Home ] [ text "Home" ]
-            , Navbar.itemLink [ Route.href Route.Events ] [ text "Events" ]
-            ]
+        |> Navbar.items (navbarItems user page)
         |> Navbar.view model.navbarState
 
 
-
---
---
---    nav [ class "navbar navbar-light" ]
---        [ div [ class "container" ]
---            [ a [ class "navbar-brand", Route.href Route.Home ]
---                [ text "PlaylistPal" ]
---            , ul [ class "nav navbar-nav pull-xs-right" ] <|
---                lazy2 Util.viewIf isLoading spinner
---                    :: (navbarLink (page == Page.Home) Route.Home [ text "Home" ])
---                    :: viewSignIn page user
---            ]
---        ]
+navbarItems : Maybe User -> ActivePage -> List (Navbar.Item msg)
+navbarItems user page =
+    [ navbarLink (page == Page.Home) Route.Home [ text "Home" ] ] ++ viewSignIn page user
 
 
-navbarLink : Bool -> Route -> List (Html msg) -> Html msg
+navbarLink : Bool -> Route -> List (Html msg) -> Navbar.Item msg
 navbarLink isActive route linkContent =
-    li [ classList [ ( "nav-item", True ), ( "active", isActive ) ] ]
-        [ a [ class "nav-link", Route.href route ] linkContent ]
+    Navbar.itemLink [ classList [ ( "active", isActive ) ], Route.href route ] linkContent
 
 
-viewSignIn : ActivePage -> Maybe User -> List (Html msg)
+viewSignIn : ActivePage -> Maybe User -> List (Navbar.Item msg)
 viewSignIn page user =
     case user of
         Nothing ->
             [ navbarLink (page == Login) Route.Login [ text "Sign in" ]
+            , navbarLink (page == Register) Route.Register [ text "Sign up" ]
             ]
 
         Just user ->
             [ navbarLink
-                True
+                False
                 Route.Home
                 [ User.usernameToHtml user.username
                 ]
             , navbarLink False Route.Logout [ text "Sign out" ]
-            , navbarLink False Route.Events [ text "Events" ]
+            , navbarLink (page == Page.Events) Route.Events [ text "Events" ]
             ]

@@ -5,7 +5,6 @@ module Views.Page exposing (frame, ActivePage(..), bodyId)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Route exposing (Route)
 import Data.User as User exposing (User, Username, usernameToHtml)
 
 
@@ -20,6 +19,7 @@ type ActivePage
     = Other
     | Home
     | Login
+    | Register
     | Events
 
 

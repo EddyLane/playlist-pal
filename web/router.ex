@@ -64,6 +64,7 @@ defmodule ElixirElmBootstrap.Router do
      pipe_through [:api, :browser_session]
      get "/token", SessionController, :show
      post "/login", SessionController, :create, as: :login
+     post "/users", UserController, :create, as: :register
 
    end
 end
