@@ -7,8 +7,6 @@ import Data.User as User exposing (User, Username)
 import Data.Event as Event exposing (Event)
 import Page.Errored as Errored exposing (PageLoadError)
 import Channels.UserSocket exposing (phoenixSubscription)
-import Channels.EventChannel exposing (eventChannel)
-import Phoenix.Channel as Channel exposing (Channel)
 import Views.Page as Page exposing (ActivePage)
 import Json.Decode as Decode exposing (Value)
 import Page.Login as Login
@@ -20,6 +18,7 @@ import Html exposing (..)
 import Ports
 import Json.Encode as Encode
 import Page.Header as Header exposing (Model, initialState, subscriptions)
+import Phoenix.Channel as Channel exposing (Channel)
 
 
 type Page
@@ -100,7 +99,6 @@ view model =
 pageToActivePage : Page -> ActivePage
 pageToActivePage page =
     case page of
-
         Events _ ->
             Page.Events
 
@@ -136,7 +134,6 @@ viewPage model isLoading page =
 
         activePage =
             pageToActivePage page
-
     in
         case page of
             Login subModel ->
@@ -167,29 +164,31 @@ viewPage model isLoading page =
 -- be a good idea to put this in here as an example. If I were actually
 -- maintaining this in production, I wouldn't bother until I needed this!
 
+channels: Page -> User -> List (Channel Events.Msg)
+channels page user =
+    case page of
+        Events _ ->
+            Events.channels user
+        _ ->
+            []
+
+channelMsg: Page -> Events.Msg -> Msg
+channelMsg page msg =
+    case page of
+        Events _ ->
+            EventsMsg msg
+        _ ->
+            NoOp
 
 socket : Page -> Maybe User -> Sub Msg
 socket page maybeUser =
-    let
-        events user =
-            user.username
-                |> eventChannel
-                |> Channel.onJoin EventChannelJoined
-                |> Channel.on "added" EventChannelUpdated
+    case maybeUser of
+        Just user ->
+            phoenixSubscription user (channels page user)
+                |> Sub.map (\msg -> channelMsg page msg)
 
-        channels user =
-            case page of
-                Events _ ->
-                    [(events user)]
-                _ ->
-                    []
-    in
-        case maybeUser of
-            Just user ->
-                phoenixSubscription user (channels user)
-
-            Nothing ->
-                Sub.none
+        Nothing ->
+            Sub.none
 
 
 subscriptions : Model -> Sub Msg
@@ -207,7 +206,6 @@ subscriptions model =
 
         page =
             getPage model.pageState
-
     in
         Sub.batch
             [ pageSubscriptions page user
@@ -235,6 +233,8 @@ getPage pageState =
 pageSubscriptions : Page -> Maybe User -> Sub Msg
 pageSubscriptions page maybeUser =
     case page of
+        Events _ ->
+            Sub.none
 
         _ ->
             Sub.none
@@ -242,6 +242,7 @@ pageSubscriptions page maybeUser =
 
 
 -- UPDATE --
+
 
 type Msg
     = SetRoute (Maybe Route)
@@ -252,6 +253,8 @@ type Msg
     | SetUser (Maybe User)
     | EventChannelUpdated Encode.Value
     | EventChannelJoined Encode.Value
+    | NoOp
+
 
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
 setRoute maybeRoute model =
@@ -264,16 +267,16 @@ setRoute maybeRoute model =
             pageErrored model
     in
         case maybeRoute of
-            Just Route.Login ->
+            Just (Route.Login) ->
                 { model | pageState = Loaded (Login Login.initialModel) } => Cmd.none
 
-            Just Route.Register ->
+            Just (Route.Register) ->
                 { model | pageState = Loaded (Register Register.initialModel) } => Cmd.none
 
-            Just Route.Events ->
+            Just (Route.Events) ->
                 { model | pageState = Loaded (Events Events.initialModel) } => Cmd.none
 
-            Just Route.Logout ->
+            Just (Route.Logout) ->
                 let
                     session =
                         model.session
@@ -406,15 +409,17 @@ updatePage page msg model =
 
                     events =
                         case (Decode.decodeValue Event.decoder eventJson) of
-                            Ok event -> event :: session.events
-                            _ -> session.events
+                            Ok event ->
+                                event :: session.events
+
+                            _ ->
+                                session.events
 
                     updatedSession =
                         { session | events = events }
                 in
                     { model | session = updatedSession }
                         => Cmd.none
-
 
             ( EventChannelJoined eventsJson, _ ) ->
                 let

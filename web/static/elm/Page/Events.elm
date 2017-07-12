@@ -18,6 +18,11 @@ import Util exposing ((=>))
 import Http
 import Validate exposing (..)
 import Views.Form as Form
+import Json.Encode as Encode
+import Json.Decode as Decode exposing (Value)
+import Channels.EventChannel exposing (eventChannel)
+import Phoenix.Channel as Channel exposing (Channel)
+import Data.User exposing (User)
 
 
 -- MODEL --
@@ -26,7 +31,8 @@ import Views.Form as Form
 type alias Model =
     { submitting : Bool
     , name : String
-    , errors: List Error
+    , errors : List Error
+    , events : List Event
     }
 
 
@@ -35,6 +41,7 @@ initialModel =
     { submitting = False
     , name = ""
     , errors = []
+    , events = []
     }
 
 
@@ -45,6 +52,8 @@ initialModel =
 type Msg
     = SubmitForm
     | SetName String
+      --    | EventChannelUpdated Encode.Value
+    | EventChannelJoined Encode.Value
     | CreateEventCompleted (Result Http.Error Event)
 
 
@@ -102,10 +111,18 @@ view session model =
                 [ Form.viewErrors model.errors
                 , form model
                 ]
-            , Grid.col [] [ eventList session.events ]
+            , Grid.col [] [ eventList model.events ]
             ]
         ]
 
+
+channels : User -> List (Channel Msg)
+channels user =
+    (user.username
+        |> eventChannel
+        |> Channel.onJoin EventChannelJoined
+    )
+        :: []
 
 
 -- UPDATE --
@@ -120,12 +137,12 @@ update msg model =
                 => NoOp
 
         SubmitForm ->
-
             case validate model of
                 [] ->
                     { model | errors = [], submitting = True }
                         => Http.send CreateEventCompleted (Request.Events.create { name = model.name })
                         => NoOp
+
                 errors ->
                     { model | errors = errors }
                         => Cmd.none
@@ -141,13 +158,28 @@ update msg model =
                 => Cmd.none
                 => NoOp
 
+        EventChannelJoined eventsJson ->
+            let
+                events =
+                    (Decode.decodeValue (Decode.list Event.decoder) eventsJson)
+                        |> Result.withDefault model.events
+            in
+                { model | events = events }
+                    => Cmd.none
+                    => NoOp
+
+
+
 -- VALIDATION --
+
 
 type Field
     = Name
 
+
 type alias Error =
     ( Field, String )
+
 
 validate : Model -> List Error
 validate =

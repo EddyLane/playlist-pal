@@ -48,7 +48,6 @@ routeToString page =
 
                 Register ->
                     [ "register" ]
-
     in
         "#/" ++ (String.join "/" pieces)
 
