@@ -3,10 +3,9 @@ module Main exposing (main)
 import Navigation exposing (Location)
 import Route exposing (Route)
 import Data.Session as Session exposing (Session)
-import Data.User as User exposing (User, Username)
+import Data.User as User exposing (User, Username, usernameToString)
 import Data.Event as Event exposing (Event)
 import Page.Errored as Errored exposing (PageLoadError)
-import Channels.UserSocket exposing (phoenixSubscription)
 import Views.Page as Page exposing (ActivePage)
 import Json.Decode as Decode exposing (Value)
 import Page.Login as Login
@@ -18,7 +17,13 @@ import Html exposing (..)
 import Ports
 import Json.Encode as Encode
 import Page.Header as Header exposing (Model, initialState, subscriptions)
-import Phoenix.Channel as Channel exposing (Channel)
+import Phoenix.Socket
+import Phoenix.Channel
+import Channels.UserSocket exposing (initPhxSocket)
+import Data.AuthToken exposing (AuthToken, tokenToString)
+
+
+--import Phoenix.Channel as Channel exposing (Channel)
 
 
 type Page
@@ -42,8 +47,44 @@ type PageState
 type alias Model =
     { session : Session
     , pageState : PageState
-    , header : Header.Model
+    , headerState : Header.Model
+    , phxSocket : Phoenix.Socket.Socket Msg
     }
+
+
+phxSocket : Phoenix.Socket.Socket Msg
+phxSocket =
+    initPhxSocket
+        |> Phoenix.Socket.on "new:msg" "rooms:lobby" ReceiveChatMessage
+
+
+eventChannel : User -> Phoenix.Channel.Channel Msg
+eventChannel user =
+    let
+        guardianToken =
+            user.token
+                |> tokenToString
+
+        username =
+            user.username
+                |> usernameToString
+    in
+        Phoenix.Channel.init ("events:" ++ username)
+            |> Phoenix.Channel.withPayload (Encode.object [ ( "guardian_token", Encode.string guardianToken ) ])
+
+
+channels : Session -> Phoenix.Socket.Socket Msg -> Cmd Msg
+channels session phxSocket =
+    let
+        ( socket, phxCmd ) =
+            case session.user of
+                Just user ->
+                    Phoenix.Socket.join (eventChannel user) phxSocket
+
+                Nothing ->
+                    phxSocket => Cmd.none
+    in
+        Cmd.map (ChannelJoined socket) phxCmd
 
 
 init : Value -> Location -> ( Model, Cmd Msg )
@@ -56,15 +97,19 @@ init val location =
             setRoute (Route.fromLocation location)
                 { pageState = Loaded initialPage
                 , session = { user = decodeUserFromJson val, events = [] }
-                , header = headerModel
+                , headerState = headerModel
+                , phxSocket = phxSocket
                 }
+
+        commands =
+            Cmd.batch
+                [ pageCmd
+                , channels pageModel.session pageModel.phxSocket
+                , Cmd.map HeaderMsg headerCmd
+                ]
     in
-        ( pageModel
-        , Cmd.batch
-            [ pageCmd
-            , Cmd.map HeaderMsg headerCmd
-            ]
-        )
+        pageModel
+            => commands
 
 
 decodeUserFromJson : Value -> Maybe User
@@ -116,7 +161,7 @@ viewHeader : Model -> Bool -> Page -> Html Msg
 viewHeader model isLoading page =
     page
         |> pageToActivePage
-        |> Header.viewHeader model.header model.session.user isLoading
+        |> Header.viewHeader model.headerState model.session.user isLoading
         |> Html.map HeaderMsg
 
 
@@ -163,55 +208,52 @@ viewPage model isLoading page =
 -- Note: we aren't currently doing any page subscriptions, but I thought it would
 -- be a good idea to put this in here as an example. If I were actually
 -- maintaining this in production, I wouldn't bother until I needed this!
-
-channels: Page -> User -> List (Channel Events.Msg)
-channels page user =
-    case page of
-        Events _ ->
-            Events.channels user
-        _ ->
-            []
-
-channelMsg: Page -> Events.Msg -> Msg
-channelMsg page msg =
-    case page of
-        Events _ ->
-            EventsMsg msg
-        _ ->
-            NoOp
-
-socket : Page -> Maybe User -> Sub Msg
-socket page maybeUser =
-    case maybeUser of
-        Just user ->
-            phoenixSubscription user (channels page user)
-                |> Sub.map (\msg -> channelMsg page msg)
-
-        Nothing ->
-            Sub.none
+--channels: Page -> User -> List (Channel Events.Msg)
+--channels page user =
+--    case page of
+--        Events _ ->
+--            Events.channels user
+--        _ ->
+--            []
+--channelMsg: Page -> Events.Msg -> Msg
+--channelMsg page msg =
+--    case page of
+--        Events _ ->
+--            EventsMsg msg
+--        _ ->
+--            NoOp
+--socket : Page -> Maybe User -> Sub Msg
+--socket page maybeUser =
+--    case maybeUser of
+--        Just user ->
+--            phoenixSubscription user (channels page user)
+--                |> Sub.map (channelMsg page)
+--
+--        Nothing ->
+--            Sub.none
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     let
         navbarState =
-            model.header.navbarState
+            model.headerState.navbarState
 
         user =
             model.session.user
 
         header =
-            Header.subscriptions model.header
+            Header.subscriptions model.headerState
                 |> Sub.map HeaderMsg
 
         page =
             getPage model.pageState
     in
         Sub.batch
-            [ pageSubscriptions page user
+            [ pageSubscriptions page model
             , Sub.map SetUser sessionChange
             , header
-            , socket page user
+            , Phoenix.Socket.listen model.phxSocket PhoenixMsg
             ]
 
 
@@ -230,8 +272,17 @@ getPage pageState =
             page
 
 
-pageSubscriptions : Page -> Maybe User -> Sub Msg
-pageSubscriptions page maybeUser =
+pageSubscriptions : Page -> Model -> Sub Msg
+pageSubscriptions page model =
+    --    let
+    --        channel =
+    --          Phoenix.Channel.init "events:tom_lane"
+    ----            |> Phoenix.Channel.withPayload userParams
+    ----            |> Phoenix.Channel.onJoin (always (ShowJoinedMessage "rooms:lobby"))
+    ----            |> Phoenix.Channel.onClose (always (ShowLeftMessage "rooms:lobby"))
+    --
+    --        (phxSocket, phxCmd) = Phoenix.Socket.join channel model.phxSocket
+    --    in
     case page of
         Events _ ->
             Sub.none
@@ -254,6 +305,11 @@ type Msg
     | EventChannelUpdated Encode.Value
     | EventChannelJoined Encode.Value
     | NoOp
+    | ReceiveChatMessage Encode.Value
+    | PhoenixMsg (Phoenix.Socket.Msg Msg)
+    | JoinChannel
+    | SetSocket (Phoenix.Socket.Socket Msg)
+    | ChannelJoined (Phoenix.Socket.Socket Msg) (Phoenix.Socket.Msg Msg)
 
 
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -316,7 +372,8 @@ updatePage page msg model =
                 ( newModel, newCmd ) =
                     subUpdate subMsg subModel
             in
-                ( { model | pageState = Loaded (toModel newModel) }, Cmd.map toMsg newCmd )
+                { model | pageState = Loaded (toModel newModel) }
+                    => Cmd.map toMsg newCmd
 
         errored =
             pageErrored model
@@ -330,23 +387,30 @@ updatePage page msg model =
                     ( ( pageModel, cmd ), msgFromPage ) =
                         Login.update subMsg subModel
 
-                    newModel =
+                    ( newModel, channelCmd ) =
                         case msgFromPage of
                             Login.NoOp ->
-                                model
+                                model => Cmd.none
 
                             Login.SetUser user ->
                                 let
+                                    ( socket, phxCmd ) =
+                                        Phoenix.Socket.join (eventChannel user) phxSocket
+
                                     session =
                                         model.session
-
-                                    updateSession =
-                                        { session | user = Just user }
                                 in
-                                    { model | session = updateSession }
+                                    { model
+                                        | session = { session | user = Just user }
+                                        , phxSocket = socket
+                                    }
+                                        => phxCmd
                 in
                     { newModel | pageState = Loaded (Login pageModel) }
-                        => Cmd.map LoginMsg cmd
+                        => Cmd.batch
+                            [ Cmd.map LoginMsg cmd
+                            , Cmd.map PhoenixMsg channelCmd
+                            ]
 
             ( RegisterMsg subMsg, Register subModel ) ->
                 let
@@ -382,9 +446,9 @@ updatePage page msg model =
             ( HeaderMsg subMsg, _ ) ->
                 let
                     ( ( headerModel, cmd ), msgFromPage ) =
-                        Header.update subMsg model.header
+                        Header.update subMsg model.headerState
                 in
-                    { model | header = headerModel }
+                    { model | headerState = headerModel }
                         => Cmd.map HeaderMsg cmd
 
             ( SetUser user, _ ) ->
@@ -392,15 +456,27 @@ updatePage page msg model =
                     session =
                         Debug.log "Setting session" model.session
 
-                    cmd =
+                    redirectCmd =
                         -- If we just signed out, then redirect to Home.
                         if session.user /= Nothing && user == Nothing then
                             Route.modifyUrl Route.Home
                         else
                             Cmd.none
+
+                    channel =
+                        Phoenix.Channel.init "events:eddy_lane"
+
+                    ( phxSocket, phxCmd ) =
+                        Phoenix.Socket.join channel model.phxSocket
                 in
-                    { model | session = { session | user = user } }
-                        => cmd
+                    { model
+                        | session = { session | user = user }
+                        , phxSocket = phxSocket
+                    }
+                        => Cmd.batch
+                            [ redirectCmd
+                            , Cmd.map PhoenixMsg phxCmd
+                            ]
 
             ( EventChannelUpdated eventJson, _ ) ->
                 let
@@ -435,6 +511,40 @@ updatePage page msg model =
                 in
                     { model | session = updatedSession }
                         => Cmd.none
+
+            --            ( JoinChannel, _ ) ->
+            --                let
+            --                    channel =
+            --                        Phoenix.Channel.init "events:eddy_lane"
+            --                           |> Phoenix.Channel.withPayload (Encode.object [ ( "guardian_token", Encode.string "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJVc2VyOjEiLCJleHAiOjE1MDI5MDk1NzYsImlhdCI6MTUwMDMxNzU3NiwiaXNzIjoiTXlBcHAiLCJqdGkiOiIzMTA4YmJhMC1lNjFlLTQ2OTMtYWU4Yy02NmFhMWUyYWRiNWYiLCJwZW0iOnt9LCJzdWIiOiJVc2VyOjEiLCJ0eXAiOiJhY2Nlc3MifQ.Y7lqRcri28wAEWPfV_ohsViF9nYMOuac97mwOHwB0BvjGX6JflTVjsmJg__Gsaq5-4IGHZmdK21OEKEZK4SrHA") ])
+            --
+            --                    ( phxSocket, phxCmd ) =
+            --                        Phoenix.Socket.join channel model.phxSocket
+            --                in
+            --                    ( { model | phxSocket = phxSocket }
+            --                    , Cmd.map PhoenixMsg phxCmd
+            --                    )
+            ( ChannelJoined socket msg, _ ) ->
+                let
+                    ( phxSocket, phxCmd ) =
+                        Phoenix.Socket.update msg socket
+                in
+                    ( { model | phxSocket = phxSocket }
+                    , Cmd.map PhoenixMsg phxCmd
+                    )
+
+            ( PhoenixMsg msg, _ ) ->
+                let
+                    ( phxSocket, phxCmd ) =
+                        Phoenix.Socket.update msg model.phxSocket
+                in
+                    ( { model | phxSocket = phxSocket }
+                    , Cmd.map PhoenixMsg phxCmd
+                    )
+
+            ( SetSocket phxSocket, _ ) ->
+                { model | phxSocket = phxSocket }
+                    => Cmd.none
 
             ( _, NotFound ) ->
                 -- Disregard incoming messages when we're on the

@@ -1,22 +1,36 @@
 defmodule ElixirElmBootstrap.EventChannel do
 
   use ElixirElmBootstrap.Web, :channel
-  use Guardian.Phoenix.Socket, only: [:current_resource/1]
+  use Phoenix.Channel
+  import Guardian.Phoenix.Socket
 
-  def join("events:" <> username, _, socket) do
 
-    user = current_resource(socket)
+  def join(_room, %{"guardian_token" => token}, socket) do
 
-    if user.username != username do
-      { :error, "not allowed" }
-    else
-        user_events = user
-            |> assoc(:events)
-            |> Repo.all
+    case sign_in(socket, token) do
+      {:ok, authed_socket, _guardian_params} ->
 
-        {:ok, user_events, socket}
+        user_events = current_resource(authed_socket)
+          |> assoc(:events)
+          |> Repo.all
+
+        {:ok, user_events, authed_socket}
+
+      {:error, _} ->
+        {:error, token }
     end
 
   end
+
+  def join(room, _, socket) do
+    {:error,  :authentication_required}
+  end
+
+  def handle_in("ping", _payload, socket) do
+    user = current_resource(socket)
+    broadcast(socket, "pong", %{message: "pong", from: user.email})
+    {:noreply, socket}
+  end
+
 
 end

@@ -20,8 +20,12 @@ import Validate exposing (..)
 import Views.Form as Form
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Value)
-import Channels.EventChannel exposing (eventChannel)
-import Phoenix.Channel as Channel exposing (Channel)
+
+
+--
+--import Channels.EventChannel exposing (eventChannel)
+--import Phoenix.Channel as Channel exposing (Channel)
+
 import Data.User exposing (User)
 
 
@@ -116,15 +120,15 @@ view session model =
         ]
 
 
-channels : User -> List (Channel Msg)
-channels user =
-    (user.username
-        |> eventChannel
-        |> Channel.onJoin EventChannelJoined
-    )
-        :: []
 
-
+--
+--channels : User -> List (Channel Msg)
+--channels user =
+--    (user.username
+--        |> eventChannel
+--        |> Channel.onJoin EventChannelJoined
+--    )
+--        :: []
 -- UPDATE --
 
 
