@@ -20,13 +20,14 @@ import Validate exposing (..)
 import Views.Form as Form
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Value)
-
-
---
---import Channels.EventChannel exposing (eventChannel)
---import Phoenix.Channel as Channel exposing (Channel)
-
+import Phoenix.Channel
+import Phoenix.Socket
+import Page.Errored as Errored exposing (PageLoadError, pageLoadError)
+import Channels.EventChannel exposing (eventChannel)
 import Data.User exposing (User)
+import Task
+import Views.Page as Page
+import Data.Event as Event exposing (Event, decoder)
 
 
 -- MODEL --
@@ -50,6 +51,15 @@ initialModel =
 
 
 
+--init : User -> Phoenix.Socket.Socket a -> Phoenix.Channel.Channel Msg
+
+
+init user socket =
+    eventChannel user
+
+
+
+--        |> Phoenix.Channel.onJoin EventChannelJoined
 -- UPDATE
 
 
@@ -120,18 +130,6 @@ view session model =
         ]
 
 
-
---
---channels : User -> List (Channel Msg)
---channels user =
---    (user.username
---        |> eventChannel
---        |> Channel.onJoin EventChannelJoined
---    )
---        :: []
--- UPDATE --
-
-
 update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 update msg model =
     case msg of
@@ -165,7 +163,7 @@ update msg model =
         EventChannelJoined eventsJson ->
             let
                 events =
-                    (Decode.decodeValue (Decode.list Event.decoder) eventsJson)
+                    (Decode.decodeValue (Decode.list Event.decoder) (Debug.log "event channel joined json" eventsJson))
                         |> Result.withDefault model.events
             in
                 { model | events = events }

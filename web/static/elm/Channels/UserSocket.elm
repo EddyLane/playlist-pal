@@ -30,3 +30,4 @@ initPhxSocket : Phoenix.Socket.Socket a
 initPhxSocket =
     Phoenix.Socket.init socketServer
         |> Phoenix.Socket.withDebug
+        |> Phoenix.Socket.withoutHeartbeat

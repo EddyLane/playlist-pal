@@ -1,26 +1,21 @@
 module Channels.EventChannel exposing (eventChannel)
 
-import Data.User exposing (Username, usernameToString)
-import Phoenix.Channel as Channel exposing (Channel)
+import Data.User exposing (User, usernameToString)
+import Data.AuthToken exposing (tokenToString)
+import Phoenix.Channel
+import Json.Encode as Encode
 
 
---onJoin : Json.Encode.Value -> Msg
---onJoin events =
---    events
---        |> EventsMsg.EventChannelConnected
---        |> MsgForEvents
---
---onUpdate : Json.Encode.Value -> Msg
---onUpdate event =
---    event
---        |> EventsMsg.EventChannelUpdated
---        |> MsgForEvents
+eventChannel : User -> Phoenix.Channel.Channel msg
+eventChannel user =
+    let
+        guardianToken =
+            user.token
+                |> tokenToString
 
-
-eventChannel : Username -> Channel msg
-eventChannel username =
-    Channel.init ("events:" ++ (usernameToString username))
-        --        |> Channel.onJoin onJoin
-        --        |> Channel.on "added" onUpdate
-        |>
-            Channel.withDebug
+        username =
+            user.username
+                |> usernameToString
+    in
+        Phoenix.Channel.init ("events:" ++ username)
+            |> Phoenix.Channel.withPayload (Encode.object [ ( "guardian_token", Encode.string guardianToken ) ])

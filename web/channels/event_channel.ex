@@ -17,13 +17,13 @@ defmodule ElixirElmBootstrap.EventChannel do
         {:ok, user_events, authed_socket}
 
       {:error, _} ->
-        {:error, token }
+        {:error, :invalid_token }
     end
 
   end
 
   def join(room, _, socket) do
-    {:error,  :authentication_required}
+    {:error,  :authentication_required }
   end
 
   def handle_in("ping", _payload, socket) do
