@@ -17,7 +17,6 @@ import Ports
 import Page.Header as Header exposing (Model, initialState, subscriptions)
 import Phoenix.Socket
 import Channels.UserSocket exposing (initPhxSocket)
-import Phoenix.Channel
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Event
@@ -238,6 +237,13 @@ type Msg
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
 setRoute maybeRoute model =
     let
+
+        page =
+            getPage model.pageState
+
+        activePage =
+            page |> pageToActivePage
+
         transition toMsg task =
             { model | pageState = TransitioningFrom (getPage model.pageState) }
                 => Task.attempt toMsg task
@@ -256,29 +262,15 @@ setRoute maybeRoute model =
                 case model.session.user of
                     Just user ->
                         let
-                            pageLoadError =
-                                model.pageState
-                                    |> getPage
-                                    |> pageToActivePage
-                                    |> Errored.pageLoadError
-
-                            error msg =
-                                msg
-                                    |> pageLoadError
-                                    |> Err
-                                    |> always
-
                             channel =
-                                Events.init user model.phxSocket
-                                    |> Phoenix.Channel.onJoin (Ok >> EventsLoaded)
-                                    |> Phoenix.Channel.onJoinError (error "Channel failure" >> EventsLoaded)
+                                Events.init user activePage EventsLoaded
 
-                            ( newPhxSocket, phxCmd ) =
+                            ( phxSocket, phxCmd ) =
                                 Phoenix.Socket.join channel model.phxSocket
                         in
                             { model
                                 | pageState = TransitioningFrom (getPage model.pageState)
-                                , phxSocket = newPhxSocket
+                                , phxSocket = phxSocket
                             }
                                 => Cmd.map PhoenixMsg phxCmd
 

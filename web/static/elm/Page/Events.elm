@@ -32,14 +32,12 @@ import Data.Event as Event exposing (Event, decoder)
 
 -- MODEL --
 
-
 type alias Model =
     { submitting : Bool
     , name : String
     , errors : List Error
     , events : List Event
     }
-
 
 initialModel : Model
 initialModel =
@@ -49,17 +47,24 @@ initialModel =
     , events = []
     }
 
+init: User -> Page.ActivePage -> (Result PageLoadError Encode.Value -> c) -> Phoenix.Channel.Channel c
+init user activePage msg =
+    let
+        pageLoadError =
+            activePage
+                |> Errored.pageLoadError
+
+        error msg =
+            msg
+                |> pageLoadError
+                |> Err
+                |> always
+    in
+        eventChannel user
+            |> Phoenix.Channel.onJoin (Ok >> msg)
+            |> Phoenix.Channel.onJoinError (error "Channel failure" >> msg)
 
 
---init : User -> Phoenix.Socket.Socket a -> Phoenix.Channel.Channel Msg
-
-
-init user socket =
-    eventChannel user
-
-
-
---        |> Phoenix.Channel.onJoin EventChannelJoined
 -- UPDATE
 
 
