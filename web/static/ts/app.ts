@@ -1,17 +1,17 @@
 import '../sass/main.scss';
 import 'phoenix_html';
 
-const ELM_ELEMENT_ID = 'elm-root';
-const FLAGS = {
-    token: window.token || ''
-};
-const targetElement = document.getElementById(ELM_ELEMENT_ID);
-
-if (targetElement) {
+// const ELM_ELEMENT_ID = 'elm-root';
+// const FLAGS = {
+//     token: window.token || ''
+// };
+// const targetElement = document.getElementById(ELM_ELEMENT_ID);
+//
+// if (targetElement) {
 
     console.log('local storage session', JSON.parse(localStorage.session || "{}"));
 
-    const app = require('../elm/Main.elm').Main.embed(targetElement, localStorage.session || null);
+    const app = require('../elm/Main.elm').Main.fullscreen(localStorage.session || null);
 
     app.ports.storeSession.subscribe(function(session) {
 
@@ -29,4 +29,4 @@ if (targetElement) {
         }
     }, false);
 
-}
+// }

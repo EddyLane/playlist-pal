@@ -5,4 +5,4 @@ import Data.Event as Event exposing (Event)
 
 
 type alias Session =
-    { user : Maybe User, events : List Event }
+    { user : Maybe User }

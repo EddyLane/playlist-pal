@@ -57,7 +57,7 @@ init val location =
         ( pageModel, pageCmd ) =
             setRoute (Route.fromLocation location)
                 { pageState = Loaded initialPage
-                , session = { user = decodeUserFromJson val, events = [] }
+                , session = { user = decodeUserFromJson val }
                 , headerState = headerModel
                 , phxSocket = initPhxSocket
                 }

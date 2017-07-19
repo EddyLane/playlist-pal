@@ -13,55 +13,55 @@
 
 <body>
 
-<nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">
+<!--<nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">-->
 
-    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+    <!--<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">-->
+        <!--<span class="navbar-toggler-icon"></span>-->
+    <!--</button>-->
 
-    <a class="navbar-brand" href="/">PlaylistPal</a>
+    <!--<a class="navbar-brand" href="/">PlaylistPal</a>-->
 
-    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+    <!--<div class="collapse navbar-collapse" id="navbarsExampleDefault">-->
 
-        <ul class="navbar-nav mr-auto">
-            <%= if current_resource(@conn) do %>
-            <li class="nav-item">
-                <%= link(user(@conn).username, to: user_path(@conn, :show, user(@conn).username), class: "nav-link") %>
-            </li>
-            <li class="nav-item">
-                <%= link("Logout", to: logout_path(@conn, :delete), method: :delete, class: "nav-link") %>
-            </li>
-            <% else %>
-            <li class="nav-item">
-                <%= link "Sign up", to: user_path(@conn, :new), class: "nav-link" %>
-            </li>
-            <li class="nav-item">
-                <%= link "Login", to: login_path(@conn, :create), class: "nav-link" %>
-            </li>
-            <% end %>
-        </ul>
+        <!--<ul class="navbar-nav mr-auto">-->
+            <!--<%= if current_resource(@conn) do %>-->
+            <!--<li class="nav-item">-->
+                <!--<%= link(user(@conn).username, to: user_path(@conn, :show, user(@conn).username), class: "nav-link") %>-->
+            <!--</li>-->
+            <!--<li class="nav-item">-->
+                <!--<%= link("Logout", to: logout_path(@conn, :delete), method: :delete, class: "nav-link") %>-->
+            <!--</li>-->
+            <!--<% else %>-->
+            <!--<li class="nav-item">-->
+                <!--<%= link "Sign up", to: user_path(@conn, :new), class: "nav-link" %>-->
+            <!--</li>-->
+            <!--<li class="nav-item">-->
+                <!--<%= link "Login", to: login_path(@conn, :create), class: "nav-link" %>-->
+            <!--</li>-->
+            <!--<% end %>-->
+        <!--</ul>-->
 
-        <!--<form class="form-inline my-2 my-lg-0">-->
-            <!--<input class="form-control mr-sm-2" type="text" placeholder="Search">-->
-            <!--<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>-->
-        <!--</form>-->
+        <!--&lt;!&ndash;<form class="form-inline my-2 my-lg-0">&ndash;&gt;-->
+            <!--&lt;!&ndash;<input class="form-control mr-sm-2" type="text" placeholder="Search">&ndash;&gt;-->
+            <!--&lt;!&ndash;<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>&ndash;&gt;-->
+        <!--&lt;!&ndash;</form>&ndash;&gt;-->
 
-    </div>
+    <!--</div>-->
 
-</nav>
+<!--</nav>-->
 
-<main role="main">
-    <%= render @view_module, @view_template, assigns %>
-</main>
+<!--<main role="main">-->
+    <!--<%= render @view_module, @view_template, assigns %>-->
+<!--</main>-->
 
-<div class="container">
-    <hr>
+<!--<div class="container">-->
+    <!--<hr>-->
 
-    <footer>
-        <p>&copy; Eddy and Rachael 2017</p>
-    </footer>
+    <!--<footer>-->
+        <!--<p>&copy; Eddy and Rachael 2017</p>-->
+    <!--</footer>-->
 
-</div>
+<!--</div>-->
 
 <!--<div class="container">-->
 
