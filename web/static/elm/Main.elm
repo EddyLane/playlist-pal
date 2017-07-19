@@ -21,6 +21,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Data.Event
 
+
 type Page
     = Blank
     | NotFound
@@ -237,7 +238,6 @@ type Msg
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
 setRoute maybeRoute model =
     let
-
         page =
             getPage model.pageState
 
@@ -386,7 +386,6 @@ updatePage page msg model =
                     { newModel | pageState = Loaded (Register pageModel) }
                         => Cmd.map RegisterMsg cmd
 
-
             ( EventsLoaded (Ok json), _ ) ->
                 let
                     initialSubModel =
@@ -401,15 +400,12 @@ updatePage page msg model =
 
                     newModel =
                         { initialSubModel | events = events }
-
-
                 in
                     { model | pageState = Loaded (Events newModel) }
                         => Cmd.none
 
             ( EventsLoaded (Err error), _ ) ->
                 { model | pageState = Loaded (Errored error) } => Cmd.none
-
 
             ( EventsMsg subMsg, Events subModel ) ->
                 let

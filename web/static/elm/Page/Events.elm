@@ -21,16 +21,15 @@ import Views.Form as Form
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Value)
 import Phoenix.Channel
-import Phoenix.Socket
 import Page.Errored as Errored exposing (PageLoadError, pageLoadError)
 import Channels.EventChannel exposing (eventChannel)
 import Data.User exposing (User)
-import Task
 import Views.Page as Page
 import Data.Event as Event exposing (Event, decoder)
 
 
 -- MODEL --
+
 
 type alias Model =
     { submitting : Bool
@@ -38,6 +37,7 @@ type alias Model =
     , errors : List Error
     , events : List Event
     }
+
 
 initialModel : Model
 initialModel =
@@ -47,16 +47,13 @@ initialModel =
     , events = []
     }
 
-init: User -> Page.ActivePage -> (Result PageLoadError Encode.Value -> c) -> Phoenix.Channel.Channel c
+
+init : User -> Page.ActivePage -> (Result PageLoadError Encode.Value -> c) -> Phoenix.Channel.Channel c
 init user activePage msg =
     let
-        pageLoadError =
-            activePage
-                |> Errored.pageLoadError
-
         error msg =
             msg
-                |> pageLoadError
+                |> Errored.pageLoadError activePage
                 |> Err
                 |> always
     in
