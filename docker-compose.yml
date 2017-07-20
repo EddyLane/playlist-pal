@@ -1,52 +1,39 @@
-# ./docker-compose.yml
+version: '3'
 
-web:
-  build: .
-  dockerfile: Dockerfile # That's our Dockerfile path
-  env_file: .env # Set environment variables from an `.env` file, if needed
-  command: mix phoenix.server # Start the server if no other command is specified
-  tty: true
-  environment:
-    - MIX_ENV=dev # That's the environment mode, you know
-    - PORT=4000
-    - PG_HOST=postgres
-    - PG_USERNAME=postgres
-    - PG_DATABASE=elixir_elm_bootstrap
-    - PG_PASSWORD=postgres
-  volumes:
-    - .:/app # Here we're mounting our project's root directory inside the container
-  ports:
-    - "4000:4000"
-    #- "4001:4001"
-  links:
-    - postgres
+services:
 
-#test:
-#  image: elixirelmbootstrap_web # We're just using the already built `web` image here
-#  env_file: .env
-#  command: mix test # Run the entire test suite if no other command is specified
-#  environment:
-#    - MIX_ENV=test # That's key
-#    - PORT=4002
-#    - PG_HOST=postgres
-#    - PG_USERNAME=postgres
-#    - PG_DATABASE=elixir_elm_bootstrap_test
-#    - PG_PASSWORD=postgres
-#  volumes_from:
-#    - web
-#  links:
-#    - postgres
+  web:
+    build: .
+    env_file: .env
+    command: sh -c "mix ecto.setup; mix phoenix.server"
+    tty: true
+    environment:
+      - MIX_ENV=dev
+      - PORT=4000
+      - PG_HOST=postgres
+      - PG_USERNAME=postgres
+      - PG_DATABASE=elixir_elm_bootstrap
+      - PG_PASSWORD=postgres
+    volumes:
+      - .:/app
+    ports:
+      - 4000
+    links:
+      - postgres
+    depends_on:
+      - postgres
 
-webpack:
-  image: self_web
-  command: ./node_modules/.bin/webpack-dev-server --host 0.0.0.0 --port 4001 --colors
-  tty: true
-  volumes_from:
-    - web
-  ports:
-   - 4001:4001
+  webpack:
+    image: node:6
+    command: sh -c "npm install -g elm; ./node_modules/.bin/webpack-dev-server --host 0.0.0.0 --port 4001 --colors"
+    tty: true
+    volumes:
+      - .:/app
+    ports:
+     - 4001
+    working_dir: /app
 
-postgres:
-  image: postgres:9.5 # https://hub.docker.com/_/postgres/
-  ports:
-    - "5432"
+  postgres:
+    image: postgres:9.5
+    ports:
+      - 5432
