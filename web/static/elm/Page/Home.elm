@@ -1,4 +1,4 @@
-module Page.Home exposing (view, update, Model, Msg)
+module Page.Home exposing (view, update, Model, Msg, initialModel)
 
 {-| The homepage. You can get here via either the / or /#/ routes.
 -}
@@ -16,6 +16,10 @@ import Util exposing ((=>), onClickStopPropagation)
 -- MODEL --
 
 
+initialModel : Model
+initialModel =
+    {}
+
 type alias Model =
     {}
 
@@ -23,8 +27,8 @@ type alias Model =
 -- VIEW --
 
 
-view :  Html Msg
-view session model =
+view : Model -> Html Msg
+view model =
     text "Hello homepage"
 
 
@@ -35,4 +39,4 @@ update : Session -> Msg -> Model -> ( Model, Cmd Msg )
 update session msg model =
     case msg of
         _ ->
-            model => msg
+            model => Cmd.none

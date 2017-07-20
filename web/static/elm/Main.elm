@@ -10,6 +10,7 @@ import Json.Decode as Decode exposing (Value)
 import Page.Login as Login
 import Page.Events as Events
 import Page.Register as Register
+import Page.Home as Home
 import Task
 import Util exposing ((=>))
 import Html exposing (..)
@@ -25,6 +26,7 @@ import Data.Event
 type Page
     = Blank
     | NotFound
+    | Home Home.Model
     | Errored PageLoadError
     | Login Login.Model
     | Register Register.Model
@@ -104,6 +106,9 @@ view model =
 pageToActivePage : Page -> ActivePage
 pageToActivePage page =
     case page of
+        Home _ ->
+            Page.Home
+
         Events _ ->
             Page.Events
 
@@ -141,6 +146,12 @@ viewPage model isLoading page =
             pageToActivePage page
     in
         case page of
+
+            Home subModel ->
+                Home.view subModel
+                    |> frame activePage
+                    |> Html.map HomeMsg
+
             Login subModel ->
                 Login.view session subModel
                     |> frame activePage
@@ -232,6 +243,7 @@ type Msg
     | SetUser (Maybe User)
     | NoOp
     | PhoenixMsg (Phoenix.Socket.Msg Msg)
+    | HomeMsg Home.Msg
 
 
 destroyPage : ActivePage -> Model -> ( Model, Cmd Msg )
@@ -264,8 +276,13 @@ setRoute maybeRoute model =
 
         errored =
             pageErrored model
+
     in
         case maybeRoute of
+
+            Just Route.Home ->
+                { model | pageState = Loaded (Home Home.initialModel) } => Cmd.none
+
             Just (Route.Login) ->
                 { model | pageState = Loaded (Login Login.initialModel) } => Cmd.none
 
@@ -288,6 +305,7 @@ setRoute maybeRoute model =
                     Nothing ->
                         errored Page.Other "You must be signed in to view your events page"
 
+
             Just (Route.Logout) ->
                 let
                     session =
@@ -302,7 +320,6 @@ setRoute maybeRoute model =
             _ ->
                 { model | pageState = Loaded NotFound } => Cmd.none
 
-
 pageErrored : Model -> ActivePage -> String -> ( Model, Cmd msg )
 pageErrored model activePage errorMessage =
     let
@@ -315,11 +332,12 @@ pageErrored model activePage errorMessage =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        ( destroyModel, destroyCmd ) =
+        (destroyModel, destroyCmd) =
             destroyPage (getPage model.pageState |> pageToActivePage) model
 
-        ( updatedModel, updatedCmd ) =
+        (updatedModel, updatedCmd) =
             updatePage (getPage destroyModel.pageState) msg destroyModel
+
     in
         updatedModel => Cmd.batch [ destroyCmd, updatedCmd ]
 
@@ -342,6 +360,7 @@ updatePage page msg model =
             pageErrored model
     in
         case ( msg, page ) of
+
             ( DestroyingPage msg, _ ) ->
                 model => msg
 

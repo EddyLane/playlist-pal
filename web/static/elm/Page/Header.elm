@@ -74,11 +74,6 @@ viewSignIn page user =
             ]
 
         Just user ->
-            [ navbarLink
-                False
-                Route.Home
-                [ User.usernameToHtml user.username
-                ]
-            , navbarLink False Route.Logout [ text "Sign out" ]
+            [ navbarLink False Route.Logout [ text "Sign out" ]
             , navbarLink (page == Page.Events) Route.Events [ text "Events" ]
             ]
