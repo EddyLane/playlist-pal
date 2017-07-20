@@ -165,9 +165,6 @@ viewPage model isLoading page =
 
 
 -- SUBSCRIPTIONS --
--- Note: we aren't currently doing any page subscriptions, but I thought it would
--- be a good idea to put this in here as an example. If I were actually
--- maintaining this in production, I wouldn't bother until I needed this!
 
 
 subscriptions : Model -> Sub Msg
@@ -225,14 +222,31 @@ pageSubscriptions page model =
 
 type Msg
     = SetRoute (Maybe Route)
+    | DestroyingPage (Cmd Msg)
     | LoginMsg Login.Msg
     | RegisterMsg Register.Msg
     | EventsMsg Events.Msg
     | EventsLoaded (Result PageLoadError Encode.Value)
     | HeaderMsg Header.Msg
+    | SetSocket (Phoenix.Socket.Socket Msg)
     | SetUser (Maybe User)
     | NoOp
     | PhoenixMsg (Phoenix.Socket.Msg Msg)
+
+
+destroyPage : ActivePage -> Model -> ( Model, Cmd Msg )
+destroyPage activePage model =
+    case activePage of
+        Page.Events ->
+            let
+                ( newPhxSocket, phxCmd ) =
+                    Phoenix.Socket.leave (Debug.log "PLZ WTF IS GOING ON" "events:eddy_lane") model.phxSocket
+            in
+                { model | phxSocket = newPhxSocket }
+                    => Cmd.map PhoenixMsg phxCmd
+
+        _ ->
+            model => Debug.log "Falling thru destroy page" Cmd.none
 
 
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -262,11 +276,8 @@ setRoute maybeRoute model =
                 case model.session.user of
                     Just user ->
                         let
-                            channel =
-                                Events.init user activePage EventsLoaded
-
                             ( phxSocket, phxCmd ) =
-                                Phoenix.Socket.join channel model.phxSocket
+                                Events.init user activePage model.phxSocket EventsLoaded
                         in
                             { model
                                 | pageState = TransitioningFrom (getPage model.pageState)
@@ -277,16 +288,6 @@ setRoute maybeRoute model =
                     Nothing ->
                         errored Page.Other "You must be signed in to view your events page"
 
-            -- TEMP
-            Just (Route.Home) ->
-                let
-                    ( newPhxSocket, phxCmd ) =
-                        Phoenix.Socket.leave "events:eddy_lane" model.phxSocket
-                in
-                    { model | phxSocket = newPhxSocket, pageState = Loaded NotFound }
-                        => Cmd.map PhoenixMsg phxCmd
-
-            -- TEMP
             Just (Route.Logout) ->
                 let
                     session =
@@ -313,7 +314,14 @@ pageErrored model activePage errorMessage =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    updatePage (getPage model.pageState) msg model
+    let
+        ( destroyModel, destroyCmd ) =
+            destroyPage (getPage model.pageState |> pageToActivePage) model
+
+        ( updatedModel, updatedCmd ) =
+            updatePage (getPage destroyModel.pageState) msg destroyModel
+    in
+        updatedModel => Cmd.batch [ destroyCmd, updatedCmd ]
 
 
 updatePage : Page -> Msg -> Model -> ( Model, Cmd Msg )
@@ -334,6 +342,9 @@ updatePage page msg model =
             pageErrored model
     in
         case ( msg, page ) of
+            ( DestroyingPage msg, _ ) ->
+                model => msg
+
             ( SetRoute route, _ ) ->
                 setRoute route model
 

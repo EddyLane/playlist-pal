@@ -26,6 +26,7 @@ import Channels.EventChannel exposing (eventChannel)
 import Data.User exposing (User)
 import Views.Page as Page
 import Data.Event as Event exposing (Event, decoder)
+import Phoenix.Socket
 
 
 -- MODEL --
@@ -48,18 +49,27 @@ initialModel =
     }
 
 
-init : User -> Page.ActivePage -> (Result PageLoadError Encode.Value -> c) -> Phoenix.Channel.Channel c
-init user activePage msg =
+init :
+    User
+    -> Page.ActivePage
+    -> Phoenix.Socket.Socket c
+    -> (Result PageLoadError Encode.Value -> c)
+    -> ( Phoenix.Socket.Socket c, Cmd (Phoenix.Socket.Msg c) )
+init user activePage phxSocket msg =
     let
         error msg =
             msg
                 |> Errored.pageLoadError activePage
                 |> Err
                 |> always
+
+        channel =
+            eventChannel user
+                |> Phoenix.Channel.onJoin (Ok >> msg)
+                |> Phoenix.Channel.onJoinError (error "Channel failure" >> msg)
     in
-        eventChannel user
-            |> Phoenix.Channel.onJoin (Ok >> msg)
-            |> Phoenix.Channel.onJoinError (error "Channel failure" >> msg)
+        Phoenix.Socket.join channel phxSocket
+
 
 
 -- UPDATE
@@ -75,6 +85,7 @@ type Msg
 
 type ExternalMsg
     = NoOp
+    | SetSocket
 
 
 
