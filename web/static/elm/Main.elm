@@ -10,6 +10,7 @@ import Json.Decode as Decode exposing (Value)
 import Page.Login as Login
 import Page.Events as Events
 import Page.Register as Register
+import Page.NotFound as NotFound
 import Page.Home as Home
 import Task
 import Util exposing ((=>))
@@ -144,6 +145,20 @@ viewPage model isLoading page =
             pageToActivePage page
     in
         case page of
+            NotFound ->
+                NotFound.view session
+                    |> frame Page.Other
+
+            Blank ->
+                -- This is for the very intiial page load, while we are loading
+                -- data via HTTP. We could also render a spinner here.
+                Html.text ""
+                    |> frame Page.Other
+
+            Errored subModel ->
+                Errored.view session subModel
+                    |> frame Page.Other
+
             Home subModel ->
                 Home.view session subModel
                     |> frame activePage
@@ -163,23 +178,6 @@ viewPage model isLoading page =
                 Events.view session subModel
                     |> frame activePage
                     |> Html.map EventsMsg
-
-            Blank ->
-                -- This is for the very intiial page load, while we are loading
-                -- data via HTTP. We could also render a spinner here.
-                Html.text ""
-                    |> frame Page.Other
-
-            Errored subModel ->
-                Errored.view session subModel
-                    |> frame Page.Other
-
-            _ ->
-                -- This is for the very intiial page load, while we are loading
-                -- data via HTTP. We could also render a spinner here.
-                Html.text ""
-                    |> frame activePage
-
 
 
 -- SUBSCRIPTIONS --
