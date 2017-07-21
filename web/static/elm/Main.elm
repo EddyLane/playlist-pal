@@ -253,16 +253,12 @@ type Msg
 
 destroyPage : ActivePage -> Model -> ( Model, Cmd Msg )
 destroyPage activePage model =
-    case activePage of
-        Page.Events ->
-            let
-                (phxSocket, phxCmd) =
-                    Events.destroy model.session.user model.phxSocket
-            in
-                { model | phxSocket = phxSocket }
-                    => Cmd.map PhoenixMsg phxCmd
-        _ ->
-            model => Cmd.none
+    let
+        (phxSocket, phxCmd) =
+            Events.destroy model.session.user model.phxSocket
+    in
+        { model | phxSocket = phxSocket }
+            => Cmd.map PhoenixMsg phxCmd
 
 
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
