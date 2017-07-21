@@ -18,7 +18,7 @@ import Html exposing (..)
 import Ports
 import Page.Header as Header exposing (Model, initialState, subscriptions)
 import Phoenix.Socket
-import Channels.UserSocket exposing (initPhxSocket)
+import Channels.UserSocket exposing (socket)
 import Json.Encode as Encode
 import Json.Decode as Decode
 
@@ -48,6 +48,11 @@ type alias Model =
     , phxSocket : Phoenix.Socket.Socket Msg
     }
 
+
+initPhxSocket : Phoenix.Socket.Socket Msg
+initPhxSocket =
+    socket
+        |> Phoenix.Socket.withDebug
 
 init : Value -> Location -> ( Model, Cmd Msg )
 init val location =
@@ -88,18 +93,19 @@ initialPage =
 
 view : Model -> Html Msg
 view model =
-    case model.pageState of
-        Loaded page ->
-            div []
-                [ viewHeader model False page
-                , viewPage model False page
+    let
+        container isLoading page
+            = div []
+                [ viewHeader model isLoading page
+                , viewPage model isLoading page
                 ]
+    in
+        case model.pageState of
+            Loaded page ->
+                container False page
 
-        TransitioningFrom page ->
-            div []
-                [ viewHeader model True page
-                , viewPage model True page
-                ]
+            TransitioningFrom page ->
+                container True page
 
 
 pageToActivePage : Page -> ActivePage
@@ -186,23 +192,13 @@ viewPage model isLoading page =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     let
-        navbarState =
-            model.headerState.navbarState
-
-        user =
-            model.session.user
-
-        header =
-            Header.subscriptions model.headerState
-                |> Sub.map HeaderMsg
-
         page =
             getPage model.pageState
     in
         Sub.batch
             [ pageSubscriptions page model
             , Sub.map SetUser sessionChange
-            , header
+            , headerSubscriptions model.headerState
             , Phoenix.Socket.listen model.phxSocket PhoenixMsg
             ]
 
@@ -221,6 +217,10 @@ getPage pageState =
         TransitioningFrom page ->
             page
 
+headerSubscriptions : Header.Model -> Sub Msg
+headerSubscriptions model =
+    Header.subscriptions model
+        |> Sub.map HeaderMsg
 
 pageSubscriptions : Page -> Model -> Sub Msg
 pageSubscriptions page model =
@@ -292,7 +292,7 @@ setRoute maybeRoute model =
                     Just user ->
                         let
                             ( phxSocket, phxCmd ) =
-                                Events.init user activePage model.phxSocket EventsLoaded
+                                Events.init user activePage model.phxSocket EventsLoaded EventsMsg
                         in
                             { model
                                 | pageState = TransitioningFrom (getPage model.pageState)

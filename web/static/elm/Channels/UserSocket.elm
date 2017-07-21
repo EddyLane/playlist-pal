@@ -1,4 +1,4 @@
-module Channels.UserSocket exposing (initPhxSocket)
+module Channels.UserSocket exposing (socket)
 
 import Data.AuthToken exposing (AuthToken, tokenToString)
 import Data.User exposing (User)
@@ -26,8 +26,6 @@ socketServer =
     "ws://localhost:4000/socket/websocket"
 
 
-initPhxSocket : Phoenix.Socket.Socket a
-initPhxSocket =
+socket : Phoenix.Socket.Socket a
+socket =
     Phoenix.Socket.init socketServer
-        |> Phoenix.Socket.withDebug
-        |> Phoenix.Socket.withoutHeartbeat

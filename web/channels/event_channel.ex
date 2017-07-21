@@ -5,7 +5,7 @@ defmodule ElixirElmBootstrap.EventChannel do
   import Guardian.Phoenix.Socket
 
 
-  def join(_room, %{"guardian_token" => token}, socket) do
+  def join("events:" <> username, %{"guardian_token" => token}, socket) do
 
     case sign_in(socket, token) do
       {:ok, authed_socket, _guardian_params} ->

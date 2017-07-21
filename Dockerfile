@@ -9,4 +9,5 @@ RUN mix local.hex --force
 RUN mix local.rebar --force
 
 # Install tools for phoenix live reload
-RUN apt-get install -y inotify-tools
+RUN apt-get update && apt-get install -y \
+  inotify-tools \

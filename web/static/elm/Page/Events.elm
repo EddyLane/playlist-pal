@@ -22,7 +22,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode exposing (Value)
 import Phoenix.Channel as Channel
 import Page.Errored as Errored exposing (PageLoadError, pageLoadError)
-import Channels.EventChannel as EventChannel
+import Channels.EventChannel as EventChannel exposing (eventChannelName)
 import Data.User exposing (User)
 import Views.Page as Page
 import Data.Event as Event exposing (Event, decoder)
@@ -65,14 +65,20 @@ destroy maybeUser phxSocket =
         _ ->
             phxSocket => Cmd.none
 
-init :
-    User
-    -> Page.ActivePage
-    -> Socket.Socket c
-    -> (Result PageLoadError Encode.Value -> c)
-    -> ( Socket.Socket c, Cmd (Socket.Msg c) )
-init user activePage phxSocket msg =
+init
+ : User
+ -> Page.ActivePage
+ -> Socket.Socket c
+ -> (Result PageLoadError Encode.Value -> c)
+ -> (Msg -> c)
+ -> ( Socket.Socket c, Cmd (Socket.Msg c) )
+init user activePage phxSocket msg newMsg =
     let
+
+        listeningSocket =
+            phxSocket
+                |> Socket.on "added" (eventChannelName user) (EventChannelJoined >> newMsg)
+
         error msg =
             msg
                 |> Errored.pageLoadError activePage
@@ -84,7 +90,7 @@ init user activePage phxSocket msg =
                 |> Channel.onJoin (Ok >> msg)
                 |> Channel.onJoinError (error "Channel failure" >> msg)
     in
-        Socket.join channel phxSocket
+        Socket.join channel listeningSocket
 
 
 
@@ -94,7 +100,6 @@ init user activePage phxSocket msg =
 type Msg
     = SubmitForm
     | SetName String
-      --    | EventChannelUpdated Encode.Value
     | EventChannelJoined Encode.Value
     | CreateEventCompleted (Result Http.Error Event)
 
@@ -192,7 +197,7 @@ update msg model =
         EventChannelJoined eventsJson ->
             let
                 events =
-                    (Decode.decodeValue (Decode.list Event.decoder) (Debug.log "event channel joined json" eventsJson))
+                    (Decode.decodeValue (Decode.list Event.decoder) eventsJson)
                         |> Result.withDefault model.events
             in
                 { model | events = events }
