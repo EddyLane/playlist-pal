@@ -20,8 +20,6 @@ import Phoenix.Socket
 import Channels.UserSocket exposing (initPhxSocket)
 import Json.Encode as Encode
 import Json.Decode as Decode
-import Data.Event
-
 
 type Page
     = Blank
@@ -146,9 +144,8 @@ viewPage model isLoading page =
             pageToActivePage page
     in
         case page of
-
             Home subModel ->
-                Home.view subModel
+                Home.view session subModel
                     |> frame activePage
                     |> Html.map HomeMsg
 
@@ -166,6 +163,16 @@ viewPage model isLoading page =
                 Events.view session subModel
                     |> frame activePage
                     |> Html.map EventsMsg
+
+            Blank ->
+                -- This is for the very intiial page load, while we are loading
+                -- data via HTTP. We could also render a spinner here.
+                Html.text ""
+                    |> frame Page.Other
+
+            Errored subModel ->
+                Errored.view session subModel
+                    |> frame Page.Other
 
             _ ->
                 -- This is for the very intiial page load, while we are loading
@@ -251,14 +258,13 @@ destroyPage activePage model =
     case activePage of
         Page.Events ->
             let
-                ( newPhxSocket, phxCmd ) =
-                    Phoenix.Socket.leave (Debug.log "PLZ WTF IS GOING ON" "events:eddy_lane") model.phxSocket
+                (phxSocket, phxCmd) =
+                    Events.destroy model.session.user model.phxSocket
             in
-                { model | phxSocket = newPhxSocket }
+                { model | phxSocket = phxSocket }
                     => Cmd.map PhoenixMsg phxCmd
-
         _ ->
-            model => Debug.log "Falling thru destroy page" Cmd.none
+            model => Cmd.none
 
 
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -276,11 +282,9 @@ setRoute maybeRoute model =
 
         errored =
             pageErrored model
-
     in
         case maybeRoute of
-
-            Just Route.Home ->
+            Just (Route.Home) ->
                 { model | pageState = Loaded (Home Home.initialModel) } => Cmd.none
 
             Just (Route.Login) ->
@@ -305,7 +309,6 @@ setRoute maybeRoute model =
                     Nothing ->
                         errored Page.Other "You must be signed in to view your events page"
 
-
             Just (Route.Logout) ->
                 let
                     session =
@@ -320,6 +323,7 @@ setRoute maybeRoute model =
             _ ->
                 { model | pageState = Loaded NotFound } => Cmd.none
 
+
 pageErrored : Model -> ActivePage -> String -> ( Model, Cmd msg )
 pageErrored model activePage errorMessage =
     let
@@ -332,12 +336,11 @@ pageErrored model activePage errorMessage =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        (destroyModel, destroyCmd) =
+        ( destroyModel, destroyCmd ) =
             destroyPage (getPage model.pageState |> pageToActivePage) model
 
-        (updatedModel, updatedCmd) =
+        ( updatedModel, updatedCmd ) =
             updatePage (getPage destroyModel.pageState) msg destroyModel
-
     in
         updatedModel => Cmd.batch [ destroyCmd, updatedCmd ]
 
@@ -360,7 +363,6 @@ updatePage page msg model =
             pageErrored model
     in
         case ( msg, page ) of
-
             ( DestroyingPage msg, _ ) ->
                 model => msg
 
@@ -417,22 +419,8 @@ updatePage page msg model =
                         => Cmd.map RegisterMsg cmd
 
             ( EventsLoaded (Ok json), _ ) ->
-                let
-                    initialSubModel =
-                        Events.initialModel
-
-                    decodedEvents =
-                        json
-                            |> Decode.decodeValue (Decode.list Data.Event.decoder)
-
-                    events =
-                        Result.withDefault initialSubModel.events decodedEvents
-
-                    newModel =
-                        { initialSubModel | events = events }
-                in
-                    { model | pageState = Loaded (Events newModel) }
-                        => Cmd.none
+                { model | pageState = Loaded (Events <| Events.initialModel json) }
+                    => Cmd.none
 
             ( EventsLoaded (Err error), _ ) ->
                 { model | pageState = Loaded (Errored error) } => Cmd.none

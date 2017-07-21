@@ -20,13 +20,13 @@ import Validate exposing (..)
 import Views.Form as Form
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Value)
-import Phoenix.Channel
+import Phoenix.Channel as Channel
 import Page.Errored as Errored exposing (PageLoadError, pageLoadError)
-import Channels.EventChannel exposing (eventChannel)
+import Channels.EventChannel as EventChannel
 import Data.User exposing (User)
 import Views.Page as Page
 import Data.Event as Event exposing (Event, decoder)
-import Phoenix.Socket
+import Phoenix.Socket as Socket
 
 
 -- MODEL --
@@ -39,22 +39,38 @@ type alias Model =
     , events : List Event
     }
 
+initialModel : Encode.Value -> Model
+initialModel eventsJson =
+    let
+        decodedEvents =
+            eventsJson
+                |> Decode.decodeValue (Decode.list Event.decoder)
+        events =
+            Result.withDefault [] decodedEvents
+    in
+        { submitting = False
+        , name = ""
+        , errors = []
+        , events = events
+        }
 
-initialModel : Model
-initialModel =
-    { submitting = False
-    , name = ""
-    , errors = []
-    , events = []
-    }
-
+destroy
+    : Maybe User
+    -> Socket.Socket msg
+    -> ( Socket.Socket msg, Cmd (Socket.Msg msg) )
+destroy maybeUser phxSocket =
+    case maybeUser of
+        Just user ->
+            EventChannel.leave user phxSocket
+        _ ->
+            phxSocket => Cmd.none
 
 init :
     User
     -> Page.ActivePage
-    -> Phoenix.Socket.Socket c
+    -> Socket.Socket c
     -> (Result PageLoadError Encode.Value -> c)
-    -> ( Phoenix.Socket.Socket c, Cmd (Phoenix.Socket.Msg c) )
+    -> ( Socket.Socket c, Cmd (Socket.Msg c) )
 init user activePage phxSocket msg =
     let
         error msg =
@@ -64,11 +80,11 @@ init user activePage phxSocket msg =
                 |> always
 
         channel =
-            eventChannel user
-                |> Phoenix.Channel.onJoin (Ok >> msg)
-                |> Phoenix.Channel.onJoinError (error "Channel failure" >> msg)
+            EventChannel.join user
+                |> Channel.onJoin (Ok >> msg)
+                |> Channel.onJoinError (error "Channel failure" >> msg)
     in
-        Phoenix.Socket.join channel phxSocket
+        Socket.join channel phxSocket
 
 
 

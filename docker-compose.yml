@@ -2,11 +2,9 @@ version: '3'
 
 services:
 
-  web:
+  elixir:
     build: .
-    env_file: .env
     command: sh -c "mix ecto.setup; mix phoenix.server"
-    tty: true
     environment:
       - MIX_ENV=dev
       - PORT=4000
@@ -17,7 +15,7 @@ services:
     volumes:
       - .:/app
     ports:
-      - 4000
+      - "4000:4000"
     links:
       - postgres
     depends_on:
@@ -25,15 +23,14 @@ services:
 
   webpack:
     image: node:6
-    command: sh -c "npm install -g elm; ./node_modules/.bin/webpack-dev-server --host 0.0.0.0 --port 4001 --colors"
-    tty: true
+    command: sh -c "./node_modules/.bin/webpack-dev-server --host 0.0.0.0 --port 4001 --colors"
     volumes:
       - .:/app
     ports:
-     - 4001
+     - "4001:4001"
     working_dir: /app
 
   postgres:
     image: postgres:9.5
     ports:
-      - 5432
+      - "5432"

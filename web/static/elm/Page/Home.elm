@@ -12,6 +12,8 @@ import Page.Errored as Errored exposing (PageLoadError, pageLoadError)
 import Task exposing (Task)
 import Http
 import Util exposing ((=>), onClickStopPropagation)
+import Bootstrap.Grid as Grid
+
 
 -- MODEL --
 
@@ -20,20 +22,32 @@ initialModel : Model
 initialModel =
     {}
 
+
 type alias Model =
     {}
+
 
 
 -- VIEW --
 
 
-view : Model -> Html Msg
-view model =
-    text "Hello homepage"
+view : Session -> Model -> Html Msg
+view session model =
+    Grid.container []
+        [ Grid.row []
+            [ Grid.col []
+                [ div [ class "jumbotron" ]
+                    [ h1 [ class "display-3" ] [ text "Homepage" ]
+                    , p [ class "lead" ] [ text "Welcome to the goddamn homepage mofo" ]
+                    ]
+                ]
+            ]
+        ]
 
 
 type Msg
     = NoOp
+
 
 update : Session -> Msg -> Model -> ( Model, Cmd Msg )
 update session msg model =
