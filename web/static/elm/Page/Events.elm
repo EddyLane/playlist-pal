@@ -22,11 +22,12 @@ import Json.Encode as Encode
 import Json.Decode as Decode exposing (Value)
 import Phoenix.Channel as Channel
 import Page.Errored as Errored exposing (PageLoadError, pageLoadError)
-import Channels.EventChannel as EventChannel
+import Channels.EventChannel as EventChannel exposing (eventChannelName)
 import Data.User exposing (User)
 import Views.Page as Page
 import Data.Event as Event exposing (Event, decoder)
 import Phoenix.Socket as Socket
+import Dict
 
 
 -- MODEL --
@@ -39,12 +40,14 @@ type alias Model =
     , events : List Event
     }
 
+
 initialModel : Encode.Value -> Model
 initialModel eventsJson =
     let
         decodedEvents =
             eventsJson
                 |> Decode.decodeValue (Decode.list Event.decoder)
+
         events =
             Result.withDefault [] decodedEvents
     in
@@ -54,16 +57,39 @@ initialModel eventsJson =
         , events = events
         }
 
-destroy
-    : Maybe User
+
+destroy :
+    Maybe User
     -> Socket.Socket msg
     -> ( Socket.Socket msg, Cmd (Socket.Msg msg) )
 destroy maybeUser phxSocket =
-    case maybeUser of
-        Just user ->
-            EventChannel.leave user phxSocket
-        _ ->
+    let
+        maybeChannel =
+            case maybeUser of
+                Just user ->
+                    Dict.get (eventChannelName user) phxSocket.channels
+
+                _ ->
+                    Nothing
+
+        default =
             phxSocket => Cmd.none
+    in
+        case ( maybeChannel, maybeUser ) of
+            ( Just channel, Just user ) ->
+                case channel.state of
+                    Channel.Joined ->
+                        EventChannel.leave user phxSocket
+
+                    Channel.Joining ->
+                        EventChannel.leave user phxSocket
+
+                    _ ->
+                        default
+
+            _ ->
+                default
+
 
 init :
     User
@@ -79,12 +105,16 @@ init user activePage phxSocket msg =
                 |> Err
                 |> always
 
+        listeningSocket =
+            phxSocket
+                |> Socket.on "added" (eventChannelName user) (Ok >> msg)
+
         channel =
             EventChannel.join user
                 |> Channel.onJoin (Ok >> msg)
                 |> Channel.onJoinError (error "Channel failure" >> msg)
     in
-        Socket.join channel phxSocket
+        Socket.join channel listeningSocket
 
 
 
@@ -95,7 +125,7 @@ type Msg
     = SubmitForm
     | SetName String
       --    | EventChannelUpdated Encode.Value
-    | EventChannelJoined Encode.Value
+      --    | EventChannelJoined Encode.Value
     | CreateEventCompleted (Result Http.Error Event)
 
 
@@ -189,18 +219,17 @@ update msg model =
                 => Cmd.none
                 => NoOp
 
-        EventChannelJoined eventsJson ->
-            let
-                events =
-                    (Decode.decodeValue (Decode.list Event.decoder) (Debug.log "event channel joined json" eventsJson))
-                        |> Result.withDefault model.events
-            in
-                { model | events = events }
-                    => Cmd.none
-                    => NoOp
 
 
-
+--        EventChannelJoined eventsJson ->
+--            let
+--                events =
+--                    (Decode.decodeValue (Decode.list Event.decoder) (Debug.log "event channel joined json" eventsJson))
+--                        |> Result.withDefault model.events
+--            in
+--                { model | events = events }
+--                    => Cmd.none
+--                    => NoOp
 -- VALIDATION --
 
 

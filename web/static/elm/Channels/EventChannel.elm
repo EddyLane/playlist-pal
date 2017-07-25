@@ -6,6 +6,7 @@ import Phoenix.Channel as Channel
 import Json.Encode as Encode
 import Phoenix.Socket as Socket
 
+
 eventChannelName : User -> String
 eventChannelName user =
     let
@@ -14,7 +15,6 @@ eventChannelName user =
                 |> usernameToString
     in
         "events:" ++ username
-
 
 
 join : User -> Channel.Channel msg

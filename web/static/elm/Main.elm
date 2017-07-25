@@ -12,7 +12,6 @@ import Page.Events as Events
 import Page.Register as Register
 import Page.NotFound as NotFound
 import Page.Home as Home
-import Task
 import Util exposing ((=>))
 import Html exposing (..)
 import Ports
@@ -21,6 +20,7 @@ import Phoenix.Socket
 import Channels.UserSocket exposing (initPhxSocket)
 import Json.Encode as Encode
 import Json.Decode as Decode
+
 
 type Page
     = Blank
@@ -34,7 +34,7 @@ type Page
 
 type PageState
     = Loaded Page
-    | TransitioningFrom Page
+    | Transitioning Page Route
 
 
 
@@ -95,10 +95,10 @@ view model =
                 , viewPage model False page
                 ]
 
-        TransitioningFrom page ->
+        Transitioning fromPage _ ->
             div []
-                [ viewHeader model True page
-                , viewPage model True page
+                [ viewHeader model True fromPage
+                , viewPage model True fromPage
                 ]
 
 
@@ -180,6 +180,7 @@ viewPage model isLoading page =
                     |> Html.map EventsMsg
 
 
+
 -- SUBSCRIPTIONS --
 
 
@@ -218,8 +219,8 @@ getPage pageState =
         Loaded page ->
             page
 
-        TransitioningFrom page ->
-            page
+        Transitioning fromPage _ ->
+            fromPage
 
 
 pageSubscriptions : Page -> Model -> Sub Msg
@@ -251,14 +252,25 @@ type Msg
     | HomeMsg Home.Msg
 
 
-destroyPage : ActivePage -> Model -> ( Model, Cmd Msg )
-destroyPage activePage model =
+destroyPage : Model -> ( Model, Cmd Msg )
+destroyPage model =
     let
-        (phxSocket, phxCmd) =
-            Events.destroy model.session.user model.phxSocket
+        page =
+            getPage model.pageState
+
+        ( phxSocket, phxCmd ) =
+            case page of
+                Events _ ->
+                    Events.destroy model.session.user model.phxSocket
+
+                _ ->
+                    ( model.phxSocket, Cmd.none )
+
+        pageDestroyCmd =
+            phxCmd |> Cmd.map PhoenixMsg
     in
         { model | phxSocket = phxSocket }
-            => Cmd.map PhoenixMsg phxCmd
+            => pageDestroyCmd
 
 
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -269,10 +281,6 @@ setRoute maybeRoute model =
 
         activePage =
             page |> pageToActivePage
-
-        transition toMsg task =
-            { model | pageState = TransitioningFrom (getPage model.pageState) }
-                => Task.attempt toMsg task
 
         errored =
             pageErrored model
@@ -295,7 +303,7 @@ setRoute maybeRoute model =
                                 Events.init user activePage model.phxSocket EventsLoaded
                         in
                             { model
-                                | pageState = TransitioningFrom (getPage model.pageState)
+                                | pageState = Transitioning (getPage model.pageState) Route.Events
                                 , phxSocket = phxSocket
                             }
                                 => Cmd.map PhoenixMsg phxCmd
@@ -330,13 +338,13 @@ pageErrored model activePage errorMessage =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        ( destroyModel, destroyCmd ) =
-            destroyPage (getPage model.pageState |> pageToActivePage) model
-
         ( updatedModel, updatedCmd ) =
-            updatePage (getPage destroyModel.pageState) msg destroyModel
+            updatePage (getPage model.pageState) msg (model)
     in
-        updatedModel => Cmd.batch [ destroyCmd, updatedCmd ]
+        updatedModel
+            => Cmd.batch
+                [ updatedCmd
+                ]
 
 
 updatePage : Page -> Msg -> Model -> ( Model, Cmd Msg )
@@ -361,7 +369,18 @@ updatePage page msg model =
                 model => msg
 
             ( SetRoute route, _ ) ->
-                setRoute route model
+                let
+                    ( destroyPageModel, destroyPageCmd ) =
+                        destroyPage model
+
+                    ( updateRouteModel, updatedRouteCmd ) =
+                        setRoute route model
+                in
+                    updateRouteModel
+                        => Cmd.batch
+                            [ destroyPageCmd
+                            , updatedRouteCmd
+                            ]
 
             ( LoginMsg subMsg, Login subModel ) ->
                 let

@@ -26,11 +26,11 @@ defmodule ElixirElmBootstrap.EventChannel do
     {:error,  :authentication_required }
   end
 
-  def handle_in("ping", _payload, socket) do
-    user = current_resource(socket)
-    broadcast(socket, "pong", %{message: "pong", from: user.email})
-    {:noreply, socket}
-  end
+#  def handle_in("ping", _payload, socket) do
+#    user = current_resource(socket)
+#    broadcast(socket, "pong", %{message: "pong", from: user.email})
+#    {:noreply, socket}
+#  end
 
 
 end
