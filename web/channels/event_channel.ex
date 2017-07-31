@@ -14,6 +14,8 @@ defmodule ElixirElmBootstrap.EventChannel do
           |> assoc(:events)
           |> Repo.all
 
+        :timer.sleep(:timer.seconds(3))
+
         {:ok, user_events, authed_socket}
 
       {:error, _} ->

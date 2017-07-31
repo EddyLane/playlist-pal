@@ -93,15 +93,20 @@ pageLoadError msg =
 
 init :
     User
-    -> Socket.Socket a
-    -> (Result PageLoadError Encode.Value -> a)
-    -> (Msg -> a)
-    -> ( Socket.Socket a, Cmd (Socket.Msg a) )
+    -> Socket.Socket msg
+    -> (Result PageLoadError Encode.Value -> msg)
+    -> (Msg -> msg)
+    -> ( Socket.Socket msg, Cmd (Socket.Msg msg) )
 init user phxSocket initMsg eventMsg =
     let
+        onAdded =
+            Decode.decodeValue Event.decoder
+                >> AddEvent
+                >> eventMsg
+
         socket =
             phxSocket
-                |> Socket.on "added" (eventChannelName user) (EventChannelUpdated >> eventMsg)
+                |> Socket.on "added" (eventChannelName user) onAdded
 
         channel =
             EventChannel.join user
@@ -119,7 +124,7 @@ init user phxSocket initMsg eventMsg =
 type Msg
     = SubmitForm
     | SetName String
-    | EventChannelUpdated Encode.Value
+    | AddEvent (Result String Event)
     | CreateEventCompleted (Result Http.Error Event)
 
 
@@ -213,19 +218,15 @@ update msg model =
                 => Cmd.none
                 => NoOp
 
-        EventChannelUpdated json ->
-            let
-                events =
-                    case Decode.decodeValue Event.decoder json of
-                        Ok event ->
-                            event :: model.events
+        AddEvent (Ok event) ->
+            { model | events = event :: model.events }
+                => Cmd.none
+                => NoOp
 
-                        Err _ ->
-                            Debug.log "Error decoding new event json" model.events
-            in
-                { model | events = events }
-                    => Cmd.none
-                    => NoOp
+        AddEvent (Err err) ->
+            Debug.log ("AddEvent err: " ++ err) model
+                => Cmd.none
+                => NoOp
 
 
 

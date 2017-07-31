@@ -8,6 +8,8 @@ import Bootstrap.Navbar as Navbar
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Route exposing (Route)
+import Views.Spinner exposing (spinner)
+import Html.Lazy exposing (lazy2)
 
 
 type alias Model =
@@ -52,6 +54,7 @@ viewHeader model user isLoading page =
         |> Navbar.withAnimation
         |> Navbar.brand [ Route.href Route.Home ] [ text "PlaylistPal" ]
         |> Navbar.items (navbarItems user page)
+        |> Navbar.customItems [ Navbar.customItem (Util.viewIf isLoading spinner) ]
         |> Navbar.view model.navbarState
 
 
