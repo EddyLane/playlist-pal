@@ -20,6 +20,7 @@ import Phoenix.Socket
 import Channels.UserSocket exposing (initPhxSocket)
 import Json.Encode as Encode
 import Json.Decode as Decode
+import Phoenix.Socket as Socket
 
 
 type Page
@@ -258,10 +259,13 @@ destroyPage model =
         page =
             getPage model.pageState
 
+        maybeUser =
+            model.session.user
+
         ( phxSocket, phxCmd ) =
-            case page of
-                Events _ ->
-                    Events.destroy model.session.user model.phxSocket
+            case ( page, maybeUser ) of
+                ( Events _, Just user ) ->
+                    Events.destroy user model.phxSocket
 
                 _ ->
                     ( model.phxSocket, Cmd.none )
@@ -300,7 +304,7 @@ setRoute maybeRoute model =
                     Just user ->
                         let
                             ( phxSocket, phxCmd ) =
-                                Events.init user activePage model.phxSocket EventsLoaded
+                                Events.init user model.phxSocket EventsLoaded EventsMsg
                         in
                             { model
                                 | pageState = Transitioning (getPage model.pageState) Route.Events

@@ -59,62 +59,57 @@ initialModel eventsJson =
 
 
 destroy :
-    Maybe User
+    User
     -> Socket.Socket msg
     -> ( Socket.Socket msg, Cmd (Socket.Msg msg) )
-destroy maybeUser phxSocket =
+destroy user phxSocket =
     let
-        maybeChannel =
-            case maybeUser of
-                Just user ->
-                    Dict.get (eventChannelName user) phxSocket.channels
+        maybeChannelState =
+            phxSocket.channels
+                |> Dict.get (eventChannelName user)
+                |> Maybe.map .state
 
-                _ ->
-                    Nothing
-
-        default =
-            phxSocket => Cmd.none
+        leave =
+            EventChannel.leave user phxSocket
     in
-        case ( maybeChannel, maybeUser ) of
-            ( Just channel, Just user ) ->
-                case channel.state of
-                    Channel.Joined ->
-                        EventChannel.leave user phxSocket
+        case maybeChannelState of
+            Just (Channel.Joined) ->
+                leave
 
-                    Channel.Joining ->
-                        EventChannel.leave user phxSocket
-
-                    _ ->
-                        default
+            Just (Channel.Joining) ->
+                leave
 
             _ ->
-                default
+                ( phxSocket, Cmd.none )
+
+
+pageLoadError : String -> b -> Result PageLoadError value
+pageLoadError msg =
+    msg
+        |> Errored.pageLoadError Page.Events
+        |> Err
+        |> always
 
 
 init :
     User
-    -> Page.ActivePage
-    -> Socket.Socket c
-    -> (Result PageLoadError Encode.Value -> c)
-    -> ( Socket.Socket c, Cmd (Socket.Msg c) )
-init user activePage phxSocket msg =
+    -> Socket.Socket a
+    -> (Result PageLoadError Encode.Value -> a)
+    -> (Msg -> a)
+    -> ( Socket.Socket a, Cmd (Socket.Msg a) )
+init user phxSocket initMsg eventMsg =
     let
-        error msg =
-            msg
-                |> Errored.pageLoadError activePage
-                |> Err
-                |> always
-
-        listeningSocket =
+        socket =
             phxSocket
-                |> Socket.on "added" (eventChannelName user) (Ok >> msg)
+                |> Socket.on "added" (eventChannelName user) (EventChannelUpdated >> eventMsg)
 
         channel =
             EventChannel.join user
-                |> Channel.onJoin (Ok >> msg)
-                |> Channel.onJoinError (error "Channel failure" >> msg)
+                |> Channel.onJoin (Ok >> initMsg)
+                |> Channel.onJoinError (pageLoadError "Channel failure" >> initMsg)
     in
-        Socket.join channel listeningSocket
+        socket
+            |> Socket.join channel
 
 
 
@@ -124,8 +119,7 @@ init user activePage phxSocket msg =
 type Msg
     = SubmitForm
     | SetName String
-      --    | EventChannelUpdated Encode.Value
-      --    | EventChannelJoined Encode.Value
+    | EventChannelUpdated Encode.Value
     | CreateEventCompleted (Result Http.Error Event)
 
 
@@ -219,17 +213,22 @@ update msg model =
                 => Cmd.none
                 => NoOp
 
+        EventChannelUpdated json ->
+            let
+                events =
+                    case Decode.decodeValue Event.decoder json of
+                        Ok event ->
+                            event :: model.events
+
+                        Err _ ->
+                            Debug.log "Error decoding new event json" model.events
+            in
+                { model | events = events }
+                    => Cmd.none
+                    => NoOp
 
 
---        EventChannelJoined eventsJson ->
---            let
---                events =
---                    (Decode.decodeValue (Decode.list Event.decoder) (Debug.log "event channel joined json" eventsJson))
---                        |> Result.withDefault model.events
---            in
---                { model | events = events }
---                    => Cmd.none
---                    => NoOp
+
 -- VALIDATION --
 
 
