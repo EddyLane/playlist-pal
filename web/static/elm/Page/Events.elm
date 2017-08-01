@@ -27,7 +27,6 @@ import Data.User exposing (User)
 import Views.Page as Page
 import Data.Event as Event exposing (Event, decoder)
 import Phoenix.Socket as Socket
-import Dict
 
 
 -- MODEL --
@@ -64,15 +63,10 @@ destroy :
     -> ( Socket.Socket msg, Cmd (Socket.Msg msg) )
 destroy user phxSocket =
     let
-        maybeChannelState =
-            phxSocket.channels
-                |> Dict.get (eventChannelName user)
-                |> Maybe.map .state
-
         leave =
             EventChannel.leave user phxSocket
     in
-        case maybeChannelState of
+        case EventChannel.get user phxSocket of
             Just (Channel.Joined) ->
                 leave
 
@@ -91,6 +85,12 @@ pageLoadError msg =
         |> always
 
 
+onAdded : Value -> Msg
+onAdded =
+    Decode.decodeValue Event.decoder
+        >> AddEvent
+
+
 init :
     User
     -> Socket.Socket msg
@@ -99,22 +99,29 @@ init :
     -> ( Socket.Socket msg, Cmd (Socket.Msg msg) )
 init user phxSocket initMsg eventMsg =
     let
-        onAdded =
-            Decode.decodeValue Event.decoder
-                >> AddEvent
-                >> eventMsg
-
-        socket =
-            phxSocket
-                |> Socket.on "added" (eventChannelName user) onAdded
-
         channel =
-            EventChannel.join user
-                |> Channel.onJoin (Ok >> initMsg)
-                |> Channel.onJoinError (pageLoadError "Channel failure" >> initMsg)
+            EventChannel.init user (Ok >> initMsg) (pageLoadError "Channel failure" >> initMsg)
+
+        join =
+            phxSocket
+                |> EventChannel.onAdded channel (onAdded >> eventMsg)
+                |> EventChannel.join channel
     in
-        socket
-            |> Socket.join channel
+        case EventChannel.get user phxSocket of
+            Nothing ->
+                join
+
+            Just (Channel.Closed) ->
+                join
+
+            Just (Channel.Leaving) ->
+                join
+
+            Just (Channel.Errored) ->
+                join
+
+            _ ->
+                ( phxSocket, Cmd.none )
 
 
 

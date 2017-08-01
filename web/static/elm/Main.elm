@@ -253,8 +253,8 @@ type Msg
     | HomeMsg Home.Msg
 
 
-destroyPage : Model -> ( Model, Cmd Msg )
-destroyPage model =
+destroyPage : Maybe Route -> Model -> ( Model, Cmd Msg )
+destroyPage maybeRoute model =
     let
         page =
             getPage model.pageState
@@ -263,8 +263,11 @@ destroyPage model =
             model.session.user
 
         ( phxSocket, phxCmd ) =
-            case ( page, maybeUser ) of
-                ( Events _, Just user ) ->
+            case ( page, maybeUser, maybeRoute ) of
+                ( Events _, Just user, Just (Route.Events) ) ->
+                    ( model.phxSocket, Cmd.none )
+
+                ( Events _, Just user, _ ) ->
                     Events.destroy user model.phxSocket
 
                 _ ->
@@ -300,8 +303,11 @@ setRoute maybeRoute model =
                 { model | pageState = Loaded (Register Register.initialModel) } => Cmd.none
 
             Just (Route.Events) ->
-                case model.session.user of
-                    Just user ->
+                case ( model.session.user, page ) of
+                    ( Just user, Events _ ) ->
+                        model => Cmd.none
+
+                    ( Just user, _ ) ->
                         let
                             ( phxSocket, phxCmd ) =
                                 Events.init user model.phxSocket EventsLoaded EventsMsg
@@ -312,7 +318,7 @@ setRoute maybeRoute model =
                             }
                                 => Cmd.map PhoenixMsg phxCmd
 
-                    Nothing ->
+                    ( Nothing, _ ) ->
                         errored Page.Other "You must be signed in to view your events page"
 
             Just (Route.Logout) ->
@@ -375,7 +381,7 @@ updatePage page msg model =
             ( SetRoute route, _ ) ->
                 let
                     ( destroyPageModel, destroyPageCmd ) =
-                        destroyPage model
+                        destroyPage route model
 
                     ( updateRouteModel, updatedRouteCmd ) =
                         setRoute route model
