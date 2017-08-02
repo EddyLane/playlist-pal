@@ -14,6 +14,7 @@ import Bootstrap.ListGroup as ListGroup
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as Input
 import Bootstrap.Button as Button
+import Bootstrap.Grid.Col as Col
 import Util exposing ((=>))
 import Http
 import Validate exposing (..)
@@ -98,13 +99,17 @@ error user socket =
         maybeChannel =
             socket.channels
                 |> Dict.get (eventChannelName user)
-
-        errorChannel channel =
-            { channel | state = Channel.Errored }
     in
         case maybeChannel of
             Just channel ->
-                { socket | channels = Dict.insert (eventChannelName user) (errorChannel channel) socket.channels }
+                let
+                    errorChannel =
+                        { channel | state = Channel.Errored }
+
+                    channels =
+                        Dict.insert (eventChannelName user) errorChannel socket.channels
+                in
+                    { socket | channels = channels }
 
             _ ->
                 socket
@@ -205,11 +210,11 @@ view : Session -> Model -> Html Msg
 view session model =
     Grid.container []
         [ Grid.row []
-            [ Grid.col []
+            [ Grid.col [ Col.lg6, Col.md6, Col.sm12 ]
                 [ Form.viewErrors model.errors
                 , form model
                 ]
-            , Grid.col [] [ eventList model.events ]
+            , Grid.col [ Col.lg6, Col.md6, Col.sm12 ] [ eventList model.events ]
             ]
         ]
 
