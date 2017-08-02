@@ -446,7 +446,16 @@ updatePage page msg model =
                     => Cmd.none
 
             ( EventsLoaded (Err error), _ ) ->
-                { model | pageState = Loaded (Errored error) } => Cmd.none
+                case model.session.user of
+                    Just user ->
+                        { model
+                            | pageState = Loaded (Errored error)
+                            , phxSocket = Events.error user model.phxSocket
+                        }
+                            => Cmd.none
+
+                    _ ->
+                        { model | pageState = Loaded (Errored error) } => Cmd.none
 
             ( EventsMsg subMsg, Events subModel ) ->
                 let

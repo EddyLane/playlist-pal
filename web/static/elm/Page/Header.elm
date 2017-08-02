@@ -54,7 +54,7 @@ viewHeader model user isLoading page =
         |> Navbar.withAnimation
         |> Navbar.brand [ Route.href Route.Home ] [ text "PlaylistPal" ]
         |> Navbar.items (navbarItems user page)
-        |> Navbar.customItems [ Navbar.customItem (Util.viewIf isLoading spinner) ]
+        |> Navbar.customItems [ Navbar.customItem (lazy2 Util.viewIf isLoading spinner) ]
         |> Navbar.view model.navbarState
 
 

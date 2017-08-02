@@ -27,6 +27,7 @@ import Data.User exposing (User)
 import Views.Page as Page
 import Data.Event as Event exposing (Event, decoder)
 import Phoenix.Socket as Socket
+import Dict
 
 
 -- MODEL --
@@ -89,6 +90,24 @@ onAdded : Value -> Msg
 onAdded =
     Decode.decodeValue Event.decoder
         >> AddEvent
+
+
+error : User -> Socket.Socket msg -> Socket.Socket msg
+error user socket =
+    let
+        maybeChannel =
+            socket.channels
+                |> Dict.get (eventChannelName user)
+
+        errorChannel channel =
+            { channel | state = Channel.Errored }
+    in
+        case maybeChannel of
+            Just channel ->
+                { socket | channels = Dict.insert (eventChannelName user) (errorChannel channel) socket.channels }
+
+            _ ->
+                socket
 
 
 init :
