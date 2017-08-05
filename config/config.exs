@@ -6,15 +6,15 @@
 use Mix.Config
 
 # General application configuration
-config :elixir_elm_bootstrap,
-  ecto_repos: [ElixirElmBootstrap.Repo]
+config :playlist_pal,
+  ecto_repos: [PlaylistPal.Repo]
 
 # Configures the endpoint
-config :elixir_elm_bootstrap, ElixirElmBootstrap.Endpoint,
+config :playlist_pal, PlaylistPalWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "9921vusr0V/6gkpa6S3n2q04ApoBby6w6SHvz0aKGEU0/WhuyIMMt5o6M3ejdgo2",
-  render_errors: [view: ElixirElmBootstrap.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: ElixirElmBootstrap.PubSub,
+  render_errors: [view: PlaylistPalWeb.ErrorView, accepts: ~w(html json)],
+  pubsub: [name: PlaylistPal.PubSub,
            adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger
@@ -30,7 +30,7 @@ config :guardian, Guardian,
   allowed_drift: 2000,
   verify_issuer: true, # optional
   secret_key: to_string(Mix.env),
-  serializer: ElixirElmBootstrap.GuardianSerializer
+  serializer: PlaylistPal.GuardianSerializer
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

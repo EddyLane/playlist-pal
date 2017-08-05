@@ -1,7 +1,7 @@
-defmodule ElixirElmBootstrap.UserControllerTest do
+defmodule PlaylistPal.UserControllerTest do
 
-  use ElixirElmBootstrap.ConnCase
-  alias ElixirElmBootstrap.User
+  use PlaylistPal.ConnCase
+  alias PlaylistPal.User
 
   @valid_attrs %{name: "Eddy Lane", username: "eddy_lane", password: "p@ssw0rd"}
   @invalid_password_attrs %{name: "Eddy Lane", username: "eddy_lane", password: "short"}

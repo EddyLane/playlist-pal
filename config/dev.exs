@@ -5,7 +5,7 @@ use Mix.Config
 #
 # The watchers configuration can be used to run external
 # watchers to your application.
-config :elixir_elm_bootstrap, ElixirElmBootstrap.Endpoint,
+config :playlist_pal, PlaylistPalWeb.Endpoint,
   http: [port: 4000],
   debug_errors: true,
   code_reloader: true,
@@ -13,13 +13,13 @@ config :elixir_elm_bootstrap, ElixirElmBootstrap.Endpoint,
 
 
 # Watch static and templates for browser reloading.
-config :elixir_elm_bootstrap, ElixirElmBootstrap.Endpoint,
+config :playlist_pal, PlaylistPalWeb.Endpoint,
   live_reload: [
     patterns: [
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
       ~r{priv/gettext/.*(po)$},
-      ~r{web/views/.*(ex)$},
-      ~r{web/templates/.*(eex)$}
+      ~r{lib/playlist_pal_web/views/.*(ex)$},
+      ~r{lib/playlist_pal_web/templates/.*(eex)$}
     ]
   ]
 
@@ -31,7 +31,7 @@ config :logger, :console, format: "[$level] $message\n"
 config :phoenix, :stacktrace_depth, 20
 
 # Configure your database
-config :elixir_elm_bootstrap, ElixirElmBootstrap.Repo,
+config :playlist_pal, PlaylistPal.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: System.get_env("PG_USERNAME"),
   password: System.get_env("PG_PASSWORD"),

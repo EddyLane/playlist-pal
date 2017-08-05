@@ -1,9 +1,15 @@
 install:
 	docker run --rm \
 	--volume ${CURDIR}:/app \
-	--workdir /app \
+	--workdir /app/assets \
 	node:6 \
 	yarn install
+
+	docker run --rm \
+	--volume ${CURDIR}:/app \
+	--workdir /app/assets \
+	node:6 \
+	node_modules/.bin/elm-package install -y
 
 	docker run --rm \
 	--volume ${CURDIR}:/app \

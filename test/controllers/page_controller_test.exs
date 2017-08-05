@@ -1,6 +1,6 @@
-defmodule ElixirElmBootstrap.PageControllerTest do
+defmodule PlaylistPal.PageControllerTest do
 
-  use ElixirElmBootstrap.ConnCase
+  use PlaylistPal.ConnCase
 
   test "GET /", %{conn: conn} do
     conn = get conn, "/"

@@ -1,4 +1,4 @@
-defmodule ElixirElmBootstrap.Repo.Migrations.CreateTrack do
+defmodule PlaylistPal.Repo.Migrations.CreateTrack do
   use Ecto.Migration
 
   def change do

@@ -1,8 +1,8 @@
-defmodule ElixirElmBootstrap.Mixfile do
+defmodule PlaylistPal.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :elixir_elm_bootstrap,
+    [app: :playlist_pal,
      version: "0.0.1",
      elixir: "~> 1.2",
      elixirc_paths: elixirc_paths(Mix.env),
@@ -17,28 +17,28 @@ defmodule ElixirElmBootstrap.Mixfile do
   #
   # Type `mix help compile.app` for more information.
   def application do
-    [mod: {ElixirElmBootstrap, []},
+    [mod: {PlaylistPal, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
                     :phoenix_ecto, :postgrex, :comeonin, :poison, :ecto_autoslug_field]]
   end
 
   # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
-  defp elixirc_paths(_),     do: ["lib", "web"]
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_),     do: ["lib"]
 
   # Specifies your project dependencies.
   #
   # Type `mix help deps` for examples and options.
   defp deps do
-    [{:phoenix, "~> 1.2.1"},
+    [{:phoenix, "~> 1.3.0"},
      {:phoenix_pubsub, "~> 1.0"},
-     {:phoenix_ecto, "~> 3.0"},
+     {:phoenix_ecto, "~> 3.2.3"},
      {:postgrex, ">= 0.0.0"},
      {:phoenix_html, "~> 2.6"},
-     {:phoenix_live_reload, "~> 1.0", only: :dev},
+     {:phoenix_live_reload, "~> 1.0.8", only: :dev},
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
-     {:guardian, "~> 0.14"},
+     {:guardian, "~> 0.14.5"},
      {:comeonin, "~> 2.0"},
      {:poison, "~> 2.0"},
      {:ecto_autoslug_field, "~> 0.2"},

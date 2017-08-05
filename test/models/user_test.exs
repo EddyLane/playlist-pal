@@ -1,7 +1,7 @@
-defmodule ElixirElmBootstrap.UserTest do
+defmodule PlaylistPal.UserTest do
 
-  use ElixirElmBootstrap.ModelCase, async: true
-  alias ElixirElmBootstrap.User
+  use PlaylistPal.ModelCase, async: true
+  alias PlaylistPal.User
 
   @valid_attrs %{name: "A User", username: "eva", password: "secret"}
   @invalid_attrs %{}

@@ -17,7 +17,7 @@ erl_crash.dump
 # variables.
 /config/prod.secret.exs
 
-/node_modules
-/elm-stuff
+assets/node_modules
+assets/elm-stuff
 npm-debug.log
 .idea/

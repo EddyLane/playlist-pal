@@ -1,3 +1,3 @@
-defmodule ElixirElmBootstrap.LayoutViewTest do
-  use ElixirElmBootstrap.ConnCase, async: true
+defmodule PlaylistPal.LayoutViewTest do
+  use PlaylistPal.ConnCase, async: true
 end

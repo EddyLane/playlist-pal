@@ -1,4 +1,4 @@
-defmodule ElixirElmBootstrap.ChannelCase do
+defmodule PlaylistPal.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.
@@ -20,22 +20,22 @@ defmodule ElixirElmBootstrap.ChannelCase do
       # Import conveniences for testing with channels
       use Phoenix.ChannelTest
 
-      alias ElixirElmBootstrap.Repo
+      alias PlaylistPal.Repo
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
 
 
       # The default endpoint for testing
-      @endpoint ElixirElmBootstrap.Endpoint
+      @endpoint PlaylistPalWeb.Endpoint
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(ElixirElmBootstrap.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(PlaylistPal.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(ElixirElmBootstrap.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(PlaylistPal.Repo, {:shared, self()})
     end
 
     :ok

@@ -1,4 +1,4 @@
-defmodule ElixirElmBootstrap.Repo.Migrations.CreateEventSlug do
+defmodule PlaylistPal.Repo.Migrations.CreateEventSlug do
   use Ecto.Migration
 
   def change do

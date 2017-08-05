@@ -1,7 +1,7 @@
-defmodule ElixirElmBootstrap.TrackTest do
-  use ElixirElmBootstrap.ModelCase
+defmodule PlaylistPal.TrackTest do
+  use PlaylistPal.ModelCase
 
-  alias ElixirElmBootstrap.Track
+  alias PlaylistPal.Track
 
   @valid_attrs %{spotify_id: "some content"}
   @invalid_attrs %{}

@@ -4,13 +4,13 @@ services:
 
   elixir:
     build: .
-    command: sh -c "mix ecto.setup; mix phoenix.server"
+    command: sh -c "mix ecto.setup; mix phx.server"
     environment:
       - MIX_ENV=dev
       - PORT=4000
       - PG_HOST=postgres
       - PG_USERNAME=postgres
-      - PG_DATABASE=elixir_elm_bootstrap
+      - PG_DATABASE=playlist_pal
       - PG_PASSWORD=postgres
     volumes:
       - .:/app
@@ -28,7 +28,7 @@ services:
       - .:/app
     ports:
      - "4001:4001"
-    working_dir: /app
+    working_dir: /app/assets
 
   postgres:
     image: postgres:9.5

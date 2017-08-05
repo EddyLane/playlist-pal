@@ -1,7 +1,7 @@
-defmodule ElixirElmBootstrap.EventControllerTest do
-  use ElixirElmBootstrap.ConnCase
+defmodule PlaylistPal.EventControllerTest do
+  use PlaylistPal.ConnCase
 
-  alias ElixirElmBootstrap.Event
+  alias PlaylistPal.Event
   @valid_attrs %{name: "some content"}
   @invalid_attrs %{}
 

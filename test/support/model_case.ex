@@ -1,4 +1,4 @@
-defmodule ElixirElmBootstrap.ModelCase do
+defmodule PlaylistPal.ModelCase do
   @moduledoc """
   This module defines the test case to be used by
   model tests.
@@ -16,20 +16,20 @@ defmodule ElixirElmBootstrap.ModelCase do
 
   using do
     quote do
-      alias ElixirElmBootstrap.Repo
+      alias PlaylistPal.Repo
 
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import ElixirElmBootstrap.ModelCase
+      import PlaylistPal.ModelCase
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(ElixirElmBootstrap.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(PlaylistPal.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(ElixirElmBootstrap.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(PlaylistPal.Repo, {:shared, self()})
     end
 
     :ok
@@ -59,7 +59,7 @@ defmodule ElixirElmBootstrap.ModelCase do
   """
   def errors_on(struct, data) do
     struct.__struct__.changeset(struct, data)
-    |> Ecto.Changeset.traverse_errors(&ElixirElmBootstrap.ErrorHelpers.translate_error/1)
+    |> Ecto.Changeset.traverse_errors(&PlaylistPal.ErrorHelpers.translate_error/1)
     |> Enum.flat_map(fn {key, errors} -> for msg <- errors, do: {key, msg} end)
   end
 end
