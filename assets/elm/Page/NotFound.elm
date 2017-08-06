@@ -1,7 +1,6 @@
 module Page.NotFound exposing (view)
 
-import Html exposing (Html, main_, h1, div, img, text)
-import Html.Attributes exposing (class, tabindex, id, src, alt)
+import Html exposing (..)
 import Data.Session as Session exposing (Session)
 
 

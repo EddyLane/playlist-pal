@@ -1,10 +1,8 @@
-defmodule PlaylistPal.User do
+defmodule PlaylistPal.Accounts.User do
 
   use Ecto.Schema
   import Ecto.Changeset
-  alias PlaylistPal.User
-
-  @derive {Poison.Encoder, only: [:name, :username, :token]}
+  alias PlaylistPal.Accounts.User
 
   schema "users" do
     field :name, :string
@@ -12,20 +10,20 @@ defmodule PlaylistPal.User do
     field :password, :string, virtual: true
     field :token, :string, virtual: true
     field :password_hash, :string
-
     has_many :tracks, PlaylistPal.Track
     has_many :events, PlaylistPal.Event
-
-    timestamps
+    timestamps()
   end
 
-  def changeset(model, params \\ :invalid) do
-    model
-    |> cast(params, ~w(name username))
+  @doc false
+  def changeset(%User{} = user_new, attrs) do
+    user_new
+    |> cast(attrs, [:name, :username])
     |> validate_required([:name, :username])
     |> validate_length(:username, min: 1, max: 20)
     |> unique_constraint(:username)
   end
+
 
   def registration_changeset(model, params) do
     model

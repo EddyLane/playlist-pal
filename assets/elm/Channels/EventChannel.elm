@@ -1,8 +1,8 @@
 module Channels.EventChannel exposing (init, leave, eventChannelName, onAdded, join, get)
 
-import Data.User exposing (User, usernameToString)
+import Data.User exposing (Username, usernameToString)
 import Data.Event
-import Data.AuthToken exposing (tokenToString)
+import Data.AuthToken exposing (AuthToken, tokenToString)
 import Phoenix.Channel as Channel
 import Json.Encode as Encode
 import Phoenix.Socket as Socket
@@ -12,43 +12,33 @@ import Json.Decode as Decode exposing (Value)
 import Data.Event as Event exposing (Event, decoder)
 
 
-eventChannelName : User -> String
-eventChannelName user =
-    let
-        username =
-            user.username
-                |> usernameToString
-    in
-        "events:" ++ username
+eventChannelName : Username -> String
+eventChannelName username =
+    "events:" ++ (usernameToString username)
 
 
 init :
-    { name : String
-    , username : Data.User.Username
-    , token : Data.AuthToken.AuthToken
-    }
+    Username
+    -> AuthToken
     -> (Encode.Value -> msg)
     -> (Encode.Value -> msg)
     -> Channel.Channel msg
-init user onJoin onJoinError =
+init username token onJoin onJoinError =
     let
         guardianToken =
-            user.token
+            token
                 |> tokenToString
-
-        channel =
-            Channel.init (eventChannelName user)
-                |> Channel.withPayload (Encode.object [ ( "guardian_token", Encode.string guardianToken ) ])
-                |> Channel.onJoin onJoin
-                |> Channel.onJoinError onJoinError
     in
-        channel
+        Channel.init (eventChannelName username)
+            |> Channel.withPayload (Encode.object [ ( "guardian_token", Encode.string guardianToken ) ])
+            |> Channel.onJoin onJoin
+            |> Channel.onJoinError onJoinError
 
 
-get : User -> Socket.Socket msg -> Maybe Channel.State
-get user socket =
+get : Username -> Socket.Socket msg -> Maybe Channel.State
+get username socket =
     socket.channels
-        |> Dict.get (eventChannelName user)
+        |> Dict.get (eventChannelName username)
         |> Maybe.map .state
 
 
@@ -67,6 +57,6 @@ join channel socket =
     Socket.join channel socket
 
 
-leave : User -> Socket.Socket msg -> ( Socket.Socket msg, Cmd (Socket.Msg msg) )
-leave user phxSocket =
-    Socket.leave (eventChannelName user) phxSocket
+leave : Username -> Socket.Socket msg -> ( Socket.Socket msg, Cmd (Socket.Msg msg) )
+leave username phxSocket =
+    Socket.leave (eventChannelName username) phxSocket

@@ -5,12 +5,7 @@ module Page.Home exposing (view, update, Model, Msg, initialModel)
 
 import Html exposing (..)
 import Html.Attributes exposing (class, href, id, placeholder, attribute, classList)
-import Html.Events exposing (onClick)
 import Data.Session as Session exposing (Session)
-import Views.Page as Page
-import Page.Errored as Errored exposing (PageLoadError, pageLoadError)
-import Task exposing (Task)
-import Http
 import Util exposing ((=>), onClickStopPropagation)
 import Bootstrap.Grid as Grid
 

@@ -8,6 +8,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Data.Session as Session exposing (Session)
 import Data.Event as Event exposing (Event)
+import Data.AuthToken as AuthToken exposing (AuthToken)
 import Request.Events exposing (create)
 import Bootstrap.Grid as Grid
 import Bootstrap.ListGroup as ListGroup
@@ -66,9 +67,9 @@ destroy :
 destroy user phxSocket =
     let
         leave =
-            EventChannel.leave user phxSocket
+            EventChannel.leave user.username phxSocket
     in
-        case EventChannel.get user phxSocket of
+        case EventChannel.get user.username phxSocket of
             Just (Channel.Joined) ->
                 leave
 
@@ -98,7 +99,7 @@ error user socket =
     let
         maybeChannel =
             socket.channels
-                |> Dict.get (eventChannelName user)
+                |> Dict.get (eventChannelName user.username)
     in
         case maybeChannel of
             Just channel ->
@@ -107,7 +108,7 @@ error user socket =
                         { channel | state = Channel.Errored }
 
                     channels =
-                        Dict.insert (eventChannelName user) errorChannel socket.channels
+                        Dict.insert (eventChannelName user.username) errorChannel socket.channels
                 in
                     { socket | channels = channels }
 
@@ -117,21 +118,22 @@ error user socket =
 
 init :
     User
+    -> AuthToken
     -> Socket.Socket msg
     -> (Result PageLoadError Encode.Value -> msg)
     -> (Msg -> msg)
     -> ( Socket.Socket msg, Cmd (Socket.Msg msg) )
-init user phxSocket initMsg eventMsg =
+init user token phxSocket initMsg eventMsg =
     let
         channel =
-            EventChannel.init user (Ok >> initMsg) (pageLoadError "Channel failure" >> initMsg)
+            EventChannel.init user.username token (Ok >> initMsg) (pageLoadError "Channel failure" >> initMsg)
 
         join =
             phxSocket
                 |> EventChannel.onAdded channel (onAdded >> eventMsg)
                 |> EventChannel.join channel
     in
-        case EventChannel.get user phxSocket of
+        case EventChannel.get user.username phxSocket of
             Nothing ->
                 join
 

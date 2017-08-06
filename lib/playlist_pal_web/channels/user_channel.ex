@@ -1,6 +1,6 @@
 defmodule PlaylistPalWeb.UserChannel do
 
-  use PlaylistPalWeb.Web, :channel
+  use PlaylistPalWeb, :channel
   use Guardian.Phoenix.Socket, only: [:current_resource/1]
 
   def join("me", params, socket) do

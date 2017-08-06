@@ -1,6 +1,6 @@
 defmodule PlaylistPalWeb.PageController do
 
-  use PlaylistPalWeb.Web, :controller
+  use PlaylistPalWeb, :controller
   import Guardian.Plug
 
   def index(conn, _params) do

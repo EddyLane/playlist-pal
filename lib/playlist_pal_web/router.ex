@@ -1,6 +1,6 @@
 defmodule PlaylistPalWeb.Router do
 
-  use PlaylistPalWeb.Web, :router
+  use PlaylistPalWeb, :router
 
   pipeline :browser do
     plug :accepts, ["html"]

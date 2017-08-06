@@ -1,5 +1,5 @@
 defmodule PlaylistPalWeb.ChangesetView do
-  use PlaylistPalWeb.Web, :view
+  use PlaylistPalWeb, :view
 
   @doc """
   Traverses and translates changeset errors.

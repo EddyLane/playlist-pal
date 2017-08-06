@@ -6,7 +6,7 @@ defmodule PlaylistPal.Track do
 
   schema "tracks" do
     field :spotify_id, :string
-    belongs_to :user, PlaylistPal.User
+    belongs_to :user, PlaylistPal.Accounts.User
 
     timestamps()
   end

@@ -1,17 +1,20 @@
 module Request.User exposing (login, register, storeSession)
 
 import Http
-import Data.User as User exposing (User, encode)
+import Data.User as User exposing (User)
+import Data.Session as Session exposing (Session)
+import Data.AuthToken as AuthToken exposing (AuthToken, stringToToken)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Util exposing ((=>))
 import Request.Helpers exposing (apiUrl)
 import Ports
+import Dict
 
 
-storeSession : User -> Cmd msg
-storeSession user =
-    User.encode user
+storeSession : Session -> Cmd msg
+storeSession session =
+    Session.encode session
         |> Encode.encode 0
         |> Just
         |> Ports.storeSession
@@ -34,7 +37,22 @@ login { username, password } =
             |> Http.post (apiUrl "/login") body
 
 
-register : { r | username : String, name : String, password : String } -> Http.Request User
+responseToSession : Http.Response String -> Result String Session
+responseToSession resp =
+    let
+        token =
+            Dict.get "authorization" resp.headers
+                |> Maybe.andThen stringToToken
+
+        user =
+            Decode.decodeString (Decode.field "data" User.decoder) resp.body
+                |> Result.toMaybe
+    in
+        Session user token
+            |> Ok
+
+
+register : { r | username : String, name : String, password : String } -> Http.Request Session
 register { username, name, password } =
     let
         user =
@@ -48,5 +66,12 @@ register { username, name, password } =
             Encode.object [ "user" => user ]
                 |> Http.jsonBody
     in
-        Decode.field "user" User.decoder
-            |> Http.post (apiUrl "/users") body
+        Http.request
+            { method = "POST"
+            , headers = []
+            , url = apiUrl "/users"
+            , body = body
+            , expect = Http.expectStringResponse responseToSession
+            , timeout = Nothing
+            , withCredentials = False
+            }

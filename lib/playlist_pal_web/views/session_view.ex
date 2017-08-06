@@ -1,3 +1,3 @@
 defmodule PlaylistPalWeb.SessionView do
-  use PlaylistPalWeb.Web, :view
+  use PlaylistPalWeb, :view
 end

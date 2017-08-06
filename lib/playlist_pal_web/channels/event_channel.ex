@@ -1,6 +1,6 @@
 defmodule PlaylistPalWeb.EventChannel do
 
-  use PlaylistPalWeb.Web, :channel
+  use PlaylistPalWeb, :channel
   use Phoenix.Channel
   import Guardian.Phoenix.Socket
 

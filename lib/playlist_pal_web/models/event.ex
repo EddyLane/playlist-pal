@@ -6,7 +6,7 @@ defmodule PlaylistPal.Event do
 
   use Ecto.Schema
   import Ecto.Changeset
-  alias PlaylistPal.User
+  alias PlaylistPal.Accounts.User
 
   @derive {Poison.Encoder, only: [:id, :name, :slug]}
 
@@ -14,7 +14,7 @@ defmodule PlaylistPal.Event do
     field :name, :string
     field :slug, NameSlug.Type
 
-    belongs_to :user, PlaylistPal.User
+    belongs_to :user, PlaylistPal.Accounts.User
 
     timestamps()
   end

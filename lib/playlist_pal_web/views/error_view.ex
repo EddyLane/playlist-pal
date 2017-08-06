@@ -1,5 +1,5 @@
 defmodule PlaylistPalWeb.ErrorView do
-  use PlaylistPalWeb.Web, :view
+  use PlaylistPalWeb, :view
 
   def render("404.html", _assigns) do
     "Page not found"

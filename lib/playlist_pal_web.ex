@@ -1,4 +1,4 @@
-defmodule PlaylistPalWeb.Web do
+defmodule PlaylistPalWeb do
   @moduledoc """
   A module that keeps using definitions for controllers,
   views and so on.

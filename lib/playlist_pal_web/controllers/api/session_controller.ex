@@ -1,7 +1,7 @@
 defmodule PlaylistPalWeb.API.SessionController do
-  use PlaylistPalWeb.Web, :controller
+  use PlaylistPalWeb, :controller
   import Guardian.Plug
-  alias PlaylistPal.User
+  alias PlaylistPal.Accounts.User
 
   plug :scrub_params, "user" when action in [:create]
   def show(conn, params) do
@@ -16,8 +16,10 @@ defmodule PlaylistPalWeb.API.SessionController do
 
 
   def create(conn, params = %{}) do
+
     username = params["user"]["username"] || ""
     user = Repo.one(from(u in User, where: u.username == ^(username)))
+
     if user do
       changeset = User.login_changeset(user, params["user"])
       if changeset.valid? do

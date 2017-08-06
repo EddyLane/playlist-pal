@@ -93,7 +93,7 @@ type Msg
     | SetName String
     | SetUsername String
     | SetPassword String
-    | RegisterCompleted (Result Http.Error User)
+    | RegisterCompleted (Result Http.Error Session)
 
 
 type ExternalMsg
@@ -147,10 +147,15 @@ update msg model =
                     => Cmd.none
                     => NoOp
 
-        RegisterCompleted (Ok user) ->
-            model
-                => Cmd.batch [ storeSession user, Route.modifyUrl Route.Home ]
-                => SetUser user
+        RegisterCompleted (Ok session) ->
+            let
+                externalCmd =
+                    Maybe.map SetUser session.user
+                        |> Maybe.withDefault NoOp
+            in
+                model
+                    => Cmd.batch [ storeSession session, Route.modifyUrl Route.Home ]
+                    => externalCmd
 
 
 

@@ -1,6 +1,6 @@
 defmodule PlaylistPalWeb.LayoutView do
 
-  use PlaylistPalWeb.Web, :view
+  use PlaylistPalWeb, :view
 
   import Guardian.Plug
 

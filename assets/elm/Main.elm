@@ -72,13 +72,17 @@ type alias Model =
 init : Value -> Location -> ( Model, Cmd Msg )
 init val location =
     let
+        sessionModel =
+            decodeSessionFromJson val
+                |> Maybe.withDefault Session.initialModel
+
         ( headerModel, headerCmd ) =
             Header.initialState
 
         ( pageModel, pageCmd ) =
             setRoute (Route.fromLocation location)
                 { pageState = Loaded initialPage
-                , session = { user = decodeUserFromJson val }
+                , session = sessionModel
                 , headerState = headerModel
                 , phxSocket = initPhxSocket
                 }
@@ -92,12 +96,12 @@ init val location =
         ( pageModel, commands )
 
 
-decodeUserFromJson : Value -> Maybe User
-decodeUserFromJson json =
+decodeSessionFromJson : Value -> Maybe Session
+decodeSessionFromJson json =
     json
         |> Decode.decodeValue Decode.string
         |> Result.toMaybe
-        |> Maybe.andThen (Decode.decodeString User.decoder >> Result.toMaybe)
+        |> Maybe.andThen (Decode.decodeString Session.decoder >> Result.toMaybe)
 
 
 initialPage : Page
@@ -206,15 +210,15 @@ subscriptions model =
     in
         Sub.batch
             [ pageSubscriptions page model
-            , Sub.map SetUser sessionChange
+            , Sub.map SetSession sessionChange
             , header
             , Phoenix.Socket.listen model.phxSocket PhoenixMsg
             ]
 
 
-sessionChange : Sub (Maybe User)
+sessionChange : Sub (Maybe Session)
 sessionChange =
-    Ports.onSessionChange (Decode.decodeValue User.decoder >> Result.toMaybe)
+    Ports.onSessionChange (Decode.decodeValue Session.decoder >> Result.toMaybe)
 
 
 getPage : PageState -> Page
@@ -251,6 +255,7 @@ type Msg
     | HeaderMsg Header.Msg
     | SetSocket (Phoenix.Socket.Socket Msg)
     | SetUser (Maybe User)
+    | SetSession (Maybe Session)
     | NoOp
     | PhoenixMsg (Phoenix.Socket.Msg Msg)
     | HomeMsg Home.Msg
@@ -306,14 +311,14 @@ setRoute maybeRoute model =
                 { model | pageState = Loaded (Register Register.initialModel) } => Cmd.none
 
             Just (Route.Events) ->
-                case ( model.session.user, page ) of
-                    ( Just user, Events _ ) ->
+                case ( model.session.user, model.session.token, page ) of
+                    ( Just user, Just token, Events _ ) ->
                         model => Cmd.none
 
-                    ( Just user, _ ) ->
+                    ( Just user, Just token, _ ) ->
                         let
                             ( phxSocket, phxCmd ) =
-                                Events.init user model.phxSocket EventsLoaded EventsMsg
+                                Events.init user token model.phxSocket EventsLoaded EventsMsg
                         in
                             { model
                                 | pageState = Transitioning (getPage model.pageState) Route.Events
@@ -321,7 +326,7 @@ setRoute maybeRoute model =
                             }
                                 => Cmd.map PhoenixMsg phxCmd
 
-                    ( Nothing, _ ) ->
+                    ( _, _, _ ) ->
                         errored Page.Other "You must be signed in to view your events page"
 
             Just (Route.Logout) ->
@@ -492,6 +497,10 @@ updatePage page msg model =
                         => Cmd.batch
                             [ redirectCmd
                             ]
+
+            ( SetSession session, _ ) ->
+                { model | session = Maybe.withDefault model.session session }
+                    => Cmd.none
 
             ( PhoenixMsg msg, _ ) ->
                 let

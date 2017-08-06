@@ -1,7 +1,7 @@
 defmodule PlaylistPalWeb.UserController do
 
-    use PlaylistPalWeb.Web, :controller
-    alias PlaylistPal.User
+    use PlaylistPalWeb, :controller
+    alias PlaylistPal.Accounts.User
     import PlaylistPal.AuthErrorHandler
 
 

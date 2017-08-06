@@ -1,6 +1,6 @@
 defmodule PlaylistPalWeb.API.EventView do
 
-  use PlaylistPalWeb.Web, :view
+  use PlaylistPalWeb, :view
 
   def render("index.json", %{events: events}) do
     %{data: render_many(events, PlaylistPalWeb.API.EventView, "event.json")}

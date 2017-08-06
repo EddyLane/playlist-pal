@@ -1,6 +1,6 @@
 defmodule PlaylistPalWeb.API.EventController do
 
-  use PlaylistPalWeb.Web, :controller
+  use PlaylistPalWeb, :controller
   use Guardian.Phoenix.Controller
 
   alias PlaylistPal.Event

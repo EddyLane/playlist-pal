@@ -1,5 +1,5 @@
 defmodule PlaylistPalWeb.API.SessionView do
-  use PlaylistPalWeb.Web, :view
+  use PlaylistPalWeb, :view
 
  def render("errorr.json", %{changeset: changeset}) do
     errors = Enum.map(changeset.errors, fn {field, detail} ->

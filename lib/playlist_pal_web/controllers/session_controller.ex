@@ -1,7 +1,7 @@
 defmodule PlaylistPalWeb.SessionController do
 
-  use PlaylistPalWeb.Web, :controller
-  alias PlaylistPal.User
+  use PlaylistPalWeb, :controller
+  alias PlaylistPal.Accounts.User
 
   plug :scrub_params, "user" when action in [:create]
 

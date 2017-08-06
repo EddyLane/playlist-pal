@@ -1,3 +1,3 @@
 defmodule PlaylistPalWeb.PageView do
-  use PlaylistPalWeb.Web, :view
+  use PlaylistPalWeb, :view
 end
