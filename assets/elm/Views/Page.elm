@@ -20,7 +20,7 @@ type ActivePage
     | Home
     | Login
     | Register
-    | Events
+    | Playlists
 
 
 {-| Take a page's Html and frame it with a header and footer.

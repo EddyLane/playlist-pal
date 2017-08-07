@@ -20,7 +20,7 @@ storeSession session =
         |> Ports.storeSession
 
 
-login : { r | username : String, password : String } -> Http.Request User
+login : { r | username : String, password : String } -> Http.Request Session
 login { username, password } =
     let
         user =
@@ -33,8 +33,23 @@ login { username, password } =
             Encode.object [ "user" => user ]
                 |> Http.jsonBody
     in
-        Decode.field "user" User.decoder
-            |> Http.post (apiUrl "/login") body
+        Http.request
+            { method = "POST"
+            , headers = []
+            , url = apiUrl "/login"
+            , body = body
+            , expect = Http.expectStringResponse responseToSession
+            , timeout = Nothing
+            , withCredentials = False
+            }
+
+
+formatToken : String -> Maybe AuthToken
+formatToken header =
+    String.split " " header
+        |> List.reverse
+        |> List.head
+        |> Maybe.andThen stringToToken
 
 
 responseToSession : Http.Response String -> Result String Session
@@ -42,7 +57,7 @@ responseToSession resp =
     let
         token =
             Dict.get "authorization" resp.headers
-                |> Maybe.andThen stringToToken
+                |> Maybe.andThen formatToken
 
         user =
             Decode.decodeString (Decode.field "data" User.decoder) resp.body

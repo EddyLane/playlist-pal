@@ -1,5 +1,6 @@
 defmodule PlaylistPalWeb.API.SessionView do
   use PlaylistPalWeb, :view
+  alias PlaylistPalWeb.API.UserView
 
  def render("errorr.json", %{changeset: changeset}) do
     errors = Enum.map(changeset.errors, fn {field, detail} ->
@@ -21,5 +22,9 @@ defmodule PlaylistPalWeb.API.SessionView do
   def render_detail(message) do
     message
   end
+
+    def render("show.json", %{user: user}) do
+      %{data: render_one(user, UserView, "user.json")}
+    end
 
 end

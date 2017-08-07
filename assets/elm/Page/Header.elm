@@ -78,5 +78,5 @@ viewSignIn page user =
 
         Just user ->
             [ navbarLink False Route.Logout [ text "Sign out" ]
-            , navbarLink (page == Page.Events) Route.Events [ text "Events" ]
+            , navbarLink (page == Page.Playlists) Route.Playlists [ text "Playlists" ]
             ]

@@ -1,20 +1,17 @@
-module Channels.EventChannel exposing (init, leave, eventChannelName, onAdded, join, get)
+module Channels.PlaylistChannel exposing (init, leave, playlistChannelName, onAdded, join, get)
 
 import Data.User exposing (Username, usernameToString)
-import Data.Event
 import Data.AuthToken exposing (AuthToken, tokenToString)
 import Phoenix.Channel as Channel
 import Json.Encode as Encode
 import Phoenix.Socket as Socket
 import Dict
 import Json.Encode as Encode
-import Json.Decode as Decode exposing (Value)
-import Data.Event as Event exposing (Event, decoder)
 
 
-eventChannelName : Username -> String
-eventChannelName username =
-    "events:" ++ (usernameToString username)
+playlistChannelName : Username -> String
+playlistChannelName username =
+    "playlists:lobby"
 
 
 init :
@@ -29,7 +26,7 @@ init username token onJoin onJoinError =
             token
                 |> tokenToString
     in
-        Channel.init (eventChannelName username)
+        Channel.init (playlistChannelName username)
             |> Channel.withPayload (Encode.object [ ( "guardian_token", Encode.string guardianToken ) ])
             |> Channel.onJoin onJoin
             |> Channel.onJoinError onJoinError
@@ -38,7 +35,7 @@ init username token onJoin onJoinError =
 get : Username -> Socket.Socket msg -> Maybe Channel.State
 get username socket =
     socket.channels
-        |> Dict.get (eventChannelName username)
+        |> Dict.get (playlistChannelName username)
         |> Maybe.map .state
 
 
@@ -59,4 +56,4 @@ join channel socket =
 
 leave : Username -> Socket.Socket msg -> ( Socket.Socket msg, Cmd (Socket.Msg msg) )
 leave username phxSocket =
-    Socket.leave (eventChannelName username) phxSocket
+    Socket.leave (playlistChannelName username) phxSocket

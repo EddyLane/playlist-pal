@@ -7,6 +7,7 @@ defmodule PlaylistPalWeb.UserSocket do
   channel "me", PlaylistPalWeb.UserChannel
   channel "tracks", PlaylistPalWeb.TrackChannel
   channel "events:*", PlaylistPalWeb.EventChannel
+  channel "playlists:lobby", PlaylistPalWeb.PlaylistChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket

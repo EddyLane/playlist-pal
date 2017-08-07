@@ -55,8 +55,9 @@ defmodule PlaylistPalWeb.Router do
    scope "/api", PlaylistPalWeb.API do
 
      pipe_through [:api, :browser_session, :authenticate_user]
-     resources "/events", EventController, except: [:new, :edit]
 
+     resources "/events", EventController, except: [:new, :edit]
+     resources "/playlists", PlaylistController, except: [:new, :edit]
    end
 
    scope "/api", PlaylistPalWeb.API do

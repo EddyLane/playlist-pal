@@ -11,7 +11,7 @@ type Route
     | Login
     | Logout
     | Register
-    | Events
+    | Playlists
 
 
 route : Parser (Route -> a) a
@@ -21,7 +21,7 @@ route =
         , Url.map Login (s "login")
         , Url.map Logout (s "logout")
         , Url.map Register (s "register")
-        , Url.map Events (s "events")
+        , Url.map Playlists (s "playlists")
         ]
 
 
@@ -43,8 +43,8 @@ routeToString page =
                 Logout ->
                     [ "logout" ]
 
-                Events ->
-                    [ "events" ]
+                Playlists ->
+                    [ "playlists" ]
 
                 Register ->
                     [ "register" ]

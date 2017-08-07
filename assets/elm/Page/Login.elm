@@ -14,7 +14,6 @@ import Validate exposing (..)
 import Data.Session as Session exposing (Session)
 import Http
 import Util exposing ((=>))
-import Data.User as User exposing (User)
 import Request.User exposing (storeSession)
 
 
@@ -87,12 +86,12 @@ type Msg
     = SubmitForm
     | SetUsername String
     | SetPassword String
-    | LoginCompleted (Result Http.Error User)
+    | LoginCompleted (Result Http.Error Session)
 
 
 type ExternalMsg
     = NoOp
-    | SetUser User
+    | SetSession Session
 
 
 update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
@@ -136,10 +135,10 @@ update msg model =
                     => Cmd.none
                     => NoOp
 
-        LoginCompleted (Ok user) ->
+        LoginCompleted (Ok session) ->
             model
-                => Cmd.batch [ storeSession { user = Just user, token = Nothing }, Route.modifyUrl Route.Home ]
-                => SetUser user
+                => Cmd.batch [ storeSession session, Route.modifyUrl Route.Home ]
+                => SetSession session
 
 
 

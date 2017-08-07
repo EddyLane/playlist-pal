@@ -11,7 +11,7 @@ defmodule PlaylistPalWeb.EventChannel do
       {:ok, authed_socket, _guardian_params} ->
 
         user_events = current_resource(authed_socket)
-          |> assoc(:events)
+          |> Ecto.assoc(:events)
           |> Repo.all
 
         :timer.sleep(:timer.seconds(3))

@@ -12,7 +12,6 @@ import Validate exposing (ifBlank)
 import Request.User exposing (storeSession)
 import Http
 import Util exposing ((=>))
-import Data.User as User exposing (User)
 
 
 -- MODEL --
@@ -98,7 +97,7 @@ type Msg
 
 type ExternalMsg
     = NoOp
-    | SetUser User
+    | SetSession Session
 
 
 update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
@@ -148,14 +147,9 @@ update msg model =
                     => NoOp
 
         RegisterCompleted (Ok session) ->
-            let
-                externalCmd =
-                    Maybe.map SetUser session.user
-                        |> Maybe.withDefault NoOp
-            in
-                model
-                    => Cmd.batch [ storeSession session, Route.modifyUrl Route.Home ]
-                    => externalCmd
+            model
+                => Cmd.batch [ storeSession session, Route.modifyUrl Route.Home ]
+                => SetSession session
 
 
 

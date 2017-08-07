@@ -8,7 +8,7 @@ import Page.Errored as Errored exposing (PageLoadError)
 import Views.Page as Page exposing (ActivePage)
 import Json.Decode as Decode exposing (Value)
 import Page.Login as Login
-import Page.Events as Events
+import Page.Playlists as Playlists
 import Page.Register as Register
 import Page.NotFound as NotFound
 import Page.Home as Home
@@ -30,7 +30,7 @@ type Page
     | Errored PageLoadError
     | Login Login.Model
     | Register Register.Model
-    | Events Events.Model
+    | Playlists Playlists.Model
 
 
 type PageState
@@ -44,8 +44,8 @@ pageToActivePage page =
         Home _ ->
             Page.Home
 
-        Events _ ->
-            Page.Events
+        Playlists _ ->
+            Page.Playlists
 
         Login _ ->
             Page.Login
@@ -182,10 +182,10 @@ viewPage model isLoading page =
                     |> frame activePage
                     |> Html.map RegisterMsg
 
-            Events subModel ->
-                Events.view session subModel
+            Playlists subModel ->
+                Playlists.view session subModel
                     |> frame activePage
-                    |> Html.map EventsMsg
+                    |> Html.map PlaylistsMsg
 
 
 
@@ -234,7 +234,7 @@ getPage pageState =
 pageSubscriptions : Page -> Model -> Sub Msg
 pageSubscriptions page model =
     case page of
-        Events _ ->
+        Playlists _ ->
             Sub.none
 
         _ ->
@@ -250,8 +250,8 @@ type Msg
     | DestroyingPage (Cmd Msg)
     | LoginMsg Login.Msg
     | RegisterMsg Register.Msg
-    | EventsMsg Events.Msg
-    | EventsLoaded (Result PageLoadError Encode.Value)
+    | PlaylistsMsg Playlists.Msg
+    | PlaylistsLoaded (Result PageLoadError Encode.Value)
     | HeaderMsg Header.Msg
     | SetSocket (Phoenix.Socket.Socket Msg)
     | SetUser (Maybe User)
@@ -272,11 +272,11 @@ destroyPage maybeRoute model =
 
         ( phxSocket, phxCmd ) =
             case ( page, maybeUser, maybeRoute ) of
-                ( Events _, Just user, Just (Route.Events) ) ->
+                ( Playlists _, Just user, Just (Route.Playlists) ) ->
                     ( model.phxSocket, Cmd.none )
 
-                ( Events _, Just user, _ ) ->
-                    Events.destroy user model.phxSocket
+                ( Playlists _, Just user, _ ) ->
+                    Playlists.destroy user model.phxSocket
 
                 _ ->
                     ( model.phxSocket, Cmd.none )
@@ -310,24 +310,24 @@ setRoute maybeRoute model =
             Just (Route.Register) ->
                 { model | pageState = Loaded (Register Register.initialModel) } => Cmd.none
 
-            Just (Route.Events) ->
+            Just (Route.Playlists) ->
                 case ( model.session.user, model.session.token, page ) of
-                    ( Just user, Just token, Events _ ) ->
+                    ( Just user, Just token, Playlists _ ) ->
                         model => Cmd.none
 
                     ( Just user, Just token, _ ) ->
                         let
                             ( phxSocket, phxCmd ) =
-                                Events.init user token model.phxSocket EventsLoaded EventsMsg
+                                Playlists.init user token model.phxSocket PlaylistsLoaded PlaylistsMsg
                         in
                             { model
-                                | pageState = Transitioning (getPage model.pageState) Route.Events
+                                | pageState = Transitioning (getPage model.pageState) Route.Playlists
                                 , phxSocket = phxSocket
                             }
                                 => Cmd.map PhoenixMsg phxCmd
 
                     ( _, _, _ ) ->
-                        errored Page.Other "You must be signed in to view your events page"
+                        errored Page.Other "You must be signed in to view your playlists page"
 
             Just (Route.Logout) ->
                 let
@@ -410,15 +410,8 @@ updatePage page msg model =
                             Login.NoOp ->
                                 model => Cmd.none
 
-                            Login.SetUser user ->
-                                let
-                                    session =
-                                        model.session
-                                in
-                                    { model
-                                        | session = { session | user = Just user }
-                                    }
-                                        => Cmd.none
+                            Login.SetSession session ->
+                                { model | session = session } => Cmd.none
                 in
                     { newModel | pageState = Loaded (Login pageModel) }
                         => Cmd.batch
@@ -436,42 +429,35 @@ updatePage page msg model =
                             Register.NoOp ->
                                 model
 
-                            Register.SetUser user ->
-                                let
-                                    session =
-                                        model.session
-
-                                    updateSession =
-                                        { session | user = Just user }
-                                in
-                                    { model | session = updateSession }
+                            Register.SetSession session ->
+                                { model | session = session }
                 in
                     { newModel | pageState = Loaded (Register pageModel) }
                         => Cmd.map RegisterMsg cmd
 
-            ( EventsLoaded (Ok json), _ ) ->
-                { model | pageState = Loaded (Events <| Events.initialModel json) }
+            ( PlaylistsLoaded (Ok json), _ ) ->
+                { model | pageState = Loaded (Playlists <| Playlists.initialModel json) }
                     => Cmd.none
 
-            ( EventsLoaded (Err error), _ ) ->
+            ( PlaylistsLoaded (Err error), _ ) ->
                 case model.session.user of
                     Just user ->
                         { model
                             | pageState = Loaded (Errored error)
-                            , phxSocket = Events.error user model.phxSocket
+                            , phxSocket = Playlists.error user model.phxSocket
                         }
                             => Cmd.none
 
                     _ ->
                         { model | pageState = Loaded (Errored error) } => Cmd.none
 
-            ( EventsMsg subMsg, Events subModel ) ->
+            ( PlaylistsMsg subMsg, Playlists subModel ) ->
                 let
                     ( ( pageModel, cmd ), msgFromPage ) =
-                        Events.update subMsg subModel
+                        Playlists.update subMsg subModel
                 in
-                    { model | pageState = Loaded (Events pageModel) }
-                        => Cmd.map EventsMsg cmd
+                    { model | pageState = Loaded (Playlists pageModel) }
+                        => Cmd.map PlaylistsMsg cmd
 
             ( HeaderMsg subMsg, _ ) ->
                 let
@@ -499,8 +485,16 @@ updatePage page msg model =
                             ]
 
             ( SetSession session, _ ) ->
-                { model | session = Maybe.withDefault model.session session }
-                    => Cmd.none
+                let
+                    redirectCmd =
+                        -- If we just signed out, then redirect to Home.
+                        if model.session.user /= Nothing && Maybe.andThen .user session == Nothing then
+                            Route.modifyUrl Route.Home
+                        else
+                            Cmd.none
+                in
+                    { model | session = Maybe.withDefault model.session session }
+                        => redirectCmd
 
             ( PhoenixMsg msg, _ ) ->
                 let

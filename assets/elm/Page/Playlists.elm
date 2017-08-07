@@ -1,15 +1,15 @@
-module Page.Events exposing (..)
+module Page.Playlists exposing (..)
 
-{-| The events page
+{-| The playlists page
 -}
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Data.Session as Session exposing (Session)
-import Data.Event as Event exposing (Event)
+import Data.Playlist as Playlist exposing (Playlist)
 import Data.AuthToken as AuthToken exposing (AuthToken)
-import Request.Events exposing (create)
+import Request.Playlist exposing (create)
 import Bootstrap.Grid as Grid
 import Bootstrap.ListGroup as ListGroup
 import Bootstrap.Form as Form
@@ -24,10 +24,10 @@ import Json.Encode as Encode
 import Json.Decode as Decode exposing (Value)
 import Phoenix.Channel as Channel
 import Page.Errored as Errored exposing (PageLoadError, pageLoadError)
-import Channels.EventChannel as EventChannel exposing (eventChannelName)
+import Channels.PlaylistChannel as PlaylistChannel exposing (playlistChannelName)
 import Data.User exposing (User)
 import Views.Page as Page
-import Data.Event as Event exposing (Event, decoder)
+import Data.Playlist as Playlist exposing (Playlist, decoder)
 import Phoenix.Socket as Socket
 import Dict
 
@@ -39,24 +39,24 @@ type alias Model =
     { submitting : Bool
     , name : String
     , errors : List Error
-    , events : List Event
+    , playlists : List Playlist
     }
 
 
 initialModel : Encode.Value -> Model
-initialModel eventsJson =
+initialModel playlistsJson =
     let
-        decodedEvents =
-            eventsJson
-                |> Decode.decodeValue (Decode.list Event.decoder)
+        decodedPlaylists =
+            playlistsJson
+                |> Decode.decodeValue (Decode.list Playlist.decoder)
 
-        events =
-            Result.withDefault [] decodedEvents
+        playlists =
+            Result.withDefault [] decodedPlaylists
     in
         { submitting = False
         , name = ""
         , errors = []
-        , events = events
+        , playlists = playlists
         }
 
 
@@ -67,9 +67,9 @@ destroy :
 destroy user phxSocket =
     let
         leave =
-            EventChannel.leave user.username phxSocket
+            PlaylistChannel.leave user.username phxSocket
     in
-        case EventChannel.get user.username phxSocket of
+        case PlaylistChannel.get user.username phxSocket of
             Just (Channel.Joined) ->
                 leave
 
@@ -83,15 +83,15 @@ destroy user phxSocket =
 pageLoadError : String -> b -> Result PageLoadError value
 pageLoadError msg =
     msg
-        |> Errored.pageLoadError Page.Events
+        |> Errored.pageLoadError Page.Playlists
         |> Err
         |> always
 
 
 onAdded : Value -> Msg
 onAdded =
-    Decode.decodeValue Event.decoder
-        >> AddEvent
+    Decode.decodeValue Playlist.decoder
+        >> AddPlaylist
 
 
 error : User -> Socket.Socket msg -> Socket.Socket msg
@@ -99,7 +99,7 @@ error user socket =
     let
         maybeChannel =
             socket.channels
-                |> Dict.get (eventChannelName user.username)
+                |> Dict.get (playlistChannelName user.username)
     in
         case maybeChannel of
             Just channel ->
@@ -108,7 +108,7 @@ error user socket =
                         { channel | state = Channel.Errored }
 
                     channels =
-                        Dict.insert (eventChannelName user.username) errorChannel socket.channels
+                        Dict.insert (playlistChannelName user.username) errorChannel socket.channels
                 in
                     { socket | channels = channels }
 
@@ -123,17 +123,17 @@ init :
     -> (Result PageLoadError Encode.Value -> msg)
     -> (Msg -> msg)
     -> ( Socket.Socket msg, Cmd (Socket.Msg msg) )
-init user token phxSocket initMsg eventMsg =
+init user token phxSocket initMsg playlistMsg =
     let
         channel =
-            EventChannel.init user.username token (Ok >> initMsg) (pageLoadError "Channel failure" >> initMsg)
+            PlaylistChannel.init user.username token (Ok >> initMsg) (pageLoadError "Channel failure" >> initMsg)
 
         join =
             phxSocket
-                |> EventChannel.onAdded channel (onAdded >> eventMsg)
-                |> EventChannel.join channel
+                |> PlaylistChannel.onAdded channel (onAdded >> playlistMsg)
+                |> PlaylistChannel.join channel
     in
-        case EventChannel.get user.username phxSocket of
+        case PlaylistChannel.get user.username phxSocket of
             Nothing ->
                 join
 
@@ -157,8 +157,8 @@ init user token phxSocket initMsg eventMsg =
 type Msg
     = SubmitForm
     | SetName String
-    | AddEvent (Result String Event)
-    | CreateEventCompleted (Result Http.Error Event)
+    | AddPlaylist (Result String Playlist)
+    | CreatePlaylistCompleted (Result Http.Error Playlist)
 
 
 type ExternalMsg
@@ -194,18 +194,18 @@ form model =
         ]
 
 
-eventItem : Event -> ListGroup.CustomItem Msg
-eventItem event =
+playlistItem : Playlist -> ListGroup.CustomItem Msg
+playlistItem playlist =
     let
         attrs =
-            [ ListGroup.attrs [ href ("#event/" ++ event.slug) ] ]
+            [ ListGroup.attrs [ href ("#playlist/" ++ playlist.slug) ] ]
     in
-        ListGroup.anchor attrs [ text event.name ]
+        ListGroup.anchor attrs [ text playlist.name ]
 
 
-eventList : List Event -> Html Msg
-eventList events =
-    ListGroup.custom (List.map eventItem events)
+playlistList : List Playlist -> Html Msg
+playlistList playlists =
+    ListGroup.custom (List.map playlistItem playlists)
 
 
 view : Session -> Model -> Html Msg
@@ -216,7 +216,7 @@ view session model =
                 [ Form.viewErrors model.errors
                 , form model
                 ]
-            , Grid.col [ Col.lg6, Col.md6, Col.sm12 ] [ eventList model.events ]
+            , Grid.col [ Col.lg6, Col.md6, Col.sm12 ] [ playlistList model.playlists ]
             ]
         ]
 
@@ -233,7 +233,7 @@ update msg model =
             case validate model of
                 [] ->
                     { model | errors = [], submitting = True }
-                        => Http.send CreateEventCompleted (Request.Events.create { name = model.name })
+                        => Http.send CreatePlaylistCompleted (Request.Playlist.create { name = model.name })
                         => NoOp
 
                 errors ->
@@ -241,23 +241,23 @@ update msg model =
                         => Cmd.none
                         => NoOp
 
-        CreateEventCompleted (Err err) ->
+        CreatePlaylistCompleted (Err err) ->
             { model | submitting = False, name = "" }
                 => Cmd.none
                 => NoOp
 
-        CreateEventCompleted (Ok event) ->
+        CreatePlaylistCompleted (Ok playlist) ->
             model
                 => Cmd.none
                 => NoOp
 
-        AddEvent (Ok event) ->
-            { model | events = event :: model.events }
+        AddPlaylist (Ok playlist) ->
+            { model | playlists = playlist :: model.playlists }
                 => Cmd.none
                 => NoOp
 
-        AddEvent (Err err) ->
-            Debug.log ("AddEvent err: " ++ err) model
+        AddPlaylist (Err err) ->
+            Debug.log ("AddPlaylist err: " ++ err) model
                 => Cmd.none
                 => NoOp
 
@@ -277,5 +277,5 @@ type alias Error =
 validate : Model -> List Error
 validate =
     Validate.all
-        [ .name >> ifBlank (Name => "Please give your event a name.")
+        [ .name >> ifBlank (Name => "Please give your playlist a name.")
         ]
