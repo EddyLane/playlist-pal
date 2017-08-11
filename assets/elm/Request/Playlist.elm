@@ -2,14 +2,16 @@ module Request.Playlist exposing (..)
 
 import Http
 import Data.Playlist as Playlist exposing (Playlist, decoder)
+import Data.Session as Session exposing (Session)
+import Data.AuthToken as AuthToken exposing (tokenToString)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Util exposing ((=>))
 import Request.Helpers exposing (apiUrl)
 
 
-create : { r | name : String } -> Http.Request Playlist
-create { name } =
+create : { r | name : String } -> Session -> Http.Request Playlist
+create { name } session =
     let
         playlist =
             Encode.object
@@ -18,6 +20,22 @@ create { name } =
         body =
             Encode.object [ "playlist" => playlist ]
                 |> Http.jsonBody
+
+        decode =
+            Decode.field "playlist" Playlist.decoder
+
+        authHeader =
+            session.token
+                |> Maybe.map tokenToString
+                |> Maybe.withDefault ""
+                |> Http.header "Authorization"
     in
-        Decode.field "playlist" Playlist.decoder
-            |> Http.post (apiUrl "/playlists") (Debug.log "body" body)
+        Http.request
+            { method = "POST"
+            , headers = [ authHeader ]
+            , url = apiUrl "/playlists"
+            , body = body
+            , expect = Http.expectJson decode
+            , timeout = Nothing
+            , withCredentials = False
+            }

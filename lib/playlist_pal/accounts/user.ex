@@ -11,8 +11,6 @@ defmodule PlaylistPal.Accounts.User do
     field :token, :string, virtual: true
     field :password_hash, :string
 
-    has_many :tracks, PlaylistPal.Track
-    has_many :events, PlaylistPal.Event
     has_many :playlists, PlaylistPal.Playlists.Playlist
 
     timestamps()

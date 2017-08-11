@@ -1,7 +1,0 @@
-<div class="container">
-
-    <h1>Log in</h1>
-
-    <%= render "form.html", changeset: @changeset, action: login_path(@conn, :create) %>
-
-</div>

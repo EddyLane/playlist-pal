@@ -173,15 +173,12 @@ type ExternalMsg
 form : Model -> Html Msg
 form model =
     Form.form [ onSubmit SubmitForm ]
-        [ Form.group []
-            [ Form.label [ for "name" ] [ text "Name" ]
-            , Input.text
-                [ Input.attrs
-                    [ value model.name
-                    , onInput SetName
-                    ]
-                , Input.id "name"
+        [ Input.text
+            [ Input.attrs
+                [ value model.name
+                , onInput SetName
                 ]
+            , Input.id "name"
             ]
         , Button.button
             [ Button.primary
@@ -190,7 +187,7 @@ form model =
                 , disabled model.submitting
                 ]
             ]
-            [ text "Submit" ]
+            [ text "Create" ]
         ]
 
 
@@ -212,17 +209,21 @@ view : Session -> Model -> Html Msg
 view session model =
     Grid.container []
         [ Grid.row []
-            [ Grid.col [ Col.lg6, Col.md6, Col.sm12 ]
+            [ Grid.col [ Col.sm ]
                 [ Form.viewErrors model.errors
                 , form model
                 ]
-            , Grid.col [ Col.lg6, Col.md6, Col.sm12 ] [ playlistList model.playlists ]
+            ]
+        , Grid.row []
+            [ Grid.col [ Col.sm ]
+                [ playlistList model.playlists
+                ]
             ]
         ]
 
 
-update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
-update msg model =
+update : Session -> Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
+update session msg model =
     case msg of
         SetName name ->
             { model | name = name }
@@ -233,7 +234,7 @@ update msg model =
             case validate model of
                 [] ->
                     { model | errors = [], submitting = True }
-                        => Http.send CreatePlaylistCompleted (Request.Playlist.create { name = model.name })
+                        => Http.send CreatePlaylistCompleted (Request.Playlist.create { name = model.name } session)
                         => NoOp
 
                 errors ->

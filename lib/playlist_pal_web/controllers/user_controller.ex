@@ -1,42 +1,31 @@
 defmodule PlaylistPalWeb.UserController do
 
-    use PlaylistPalWeb, :controller
-    alias PlaylistPal.Accounts.User
-    import PlaylistPal.AuthErrorHandler
+  use PlaylistPalWeb, :controller
 
+  alias PlaylistPal.Accounts
+  alias PlaylistPal.Accounts.User
 
-    def new(conn, _params) do
-      changeset = User.changeset(%User{})
-      render conn, "new.html", changeset: changeset
+  import Guardian.Plug
+
+  action_fallback PlaylistPalWeb.FallbackController
+
+  def create(conn, %{"user" => user_params}) do
+
+    with {:ok, %User{} = user} <- Accounts.create_user(user_params) do
+
+      authed_conn = api_sign_in(conn, user)
+      jwt = current_token(authed_conn)
+      {:ok, claims} = Guardian.Plug.claims(authed_conn)
+      exp = Map.get(claims, "exp")
+
+      authed_conn
+        |> put_status(:created)
+        |> put_resp_header("authorization", "Bearer #{jwt}")
+        |> put_resp_header("x-expires", "#{exp}")
+        |> render("show.json", user: user)
+
     end
 
-    def create(conn, %{"user" => user_params}) do
-
-      changeset = User.registration_changeset(%User{}, user_params)
-
-      case Repo.insert(changeset) do
-        {:ok, user} ->
-          conn
-          |> Guardian.Plug.sign_in(user, :token, perms: %{ default: Guardian.Permissions.max })
-          |> put_flash(:info, "#{user.name} created!")
-          |> redirect(to: page_path(conn, :index))
-        {:error, changeset} ->
-          render(conn, "new.html", changeset: changeset)
-      end
-
-    end
-
-    def show(conn, %{"id" => username}) do
-
-     authenticated_user = Guardian.Plug.current_resource(conn)
-
-     user = Repo.get_by(User, username: username)
-
-     if user.id != authenticated_user.id do
-       unauthenticated(conn, :user_not_authed)
-     end
-
-      render conn, "show.html", user: user
-    end
+  end
 
 end

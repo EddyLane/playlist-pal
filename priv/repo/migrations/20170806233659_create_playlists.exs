@@ -6,7 +6,7 @@ defmodule PlaylistPal.Repo.Migrations.CreatePlaylists do
     create table(:playlists) do
       add :name, :string
       add :slug, :string
-      add :user_id, references(:users, on_delete: :nothing, null: false)
+      add :user_id, references(:users, on_delete: :delete_all, null: false), null: false
 
       timestamps()
     end

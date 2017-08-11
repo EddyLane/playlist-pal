@@ -22,10 +22,7 @@ defmodule PlaylistPal.Playlists do
     Repo.all(Playlist)
   end
 
-  def list_playlists(user) do
-
-    IO.inspect(user)
-
+  def list_playlists(%User{} = user) do
     user
     |> Ecto.assoc(:playlists)
     |> Repo.all

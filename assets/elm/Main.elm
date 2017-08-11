@@ -454,7 +454,7 @@ updatePage page msg model =
             ( PlaylistsMsg subMsg, Playlists subModel ) ->
                 let
                     ( ( pageModel, cmd ), msgFromPage ) =
-                        Playlists.update subMsg subModel
+                        Playlists.update model.session subMsg subModel
                 in
                     { model | pageState = Loaded (Playlists pageModel) }
                         => Cmd.map PlaylistsMsg cmd

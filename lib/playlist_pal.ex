@@ -25,7 +25,7 @@ defmodule PlaylistPal do
   # Tell Phoenix to update the endpoint configuration
   # whenever the application is updated.
   def config_change(changed, _new, removed) do
-    PlaylistPal.Endpoint.config_change(changed, removed)
+    PlaylistPalWeb.Endpoint.config_change(changed, removed)
     :ok
   end
 end

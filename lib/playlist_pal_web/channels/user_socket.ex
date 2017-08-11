@@ -4,9 +4,6 @@ defmodule PlaylistPalWeb.UserSocket do
   import Guardian.Phoenix.Socket
 
   ## Channels
-  channel "me", PlaylistPalWeb.UserChannel
-  channel "tracks", PlaylistPalWeb.TrackChannel
-  channel "events:*", PlaylistPalWeb.EventChannel
   channel "playlists:lobby", PlaylistPalWeb.PlaylistChannel
 
   ## Transports
