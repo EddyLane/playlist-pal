@@ -3,7 +3,7 @@ version: '3'
 services:
 
   elixir:
-    build: .
+    build: ./backend
     command: sh -c "mix ecto.setup; mix phx.server"
     environment:
       - MIX_ENV=dev
@@ -13,7 +13,7 @@ services:
       - PG_DATABASE=playlist_pal
       - PG_PASSWORD=postgres
     volumes:
-      - .:/app
+      - ./backend:/app
     ports:
       - "4000:4000"
     links:
@@ -21,14 +21,21 @@ services:
     depends_on:
       - postgres
 
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    ports:
+      - "80:80"
+
   webpack:
     image: node:6
     command: sh -c "./node_modules/.bin/webpack-dev-server --host 0.0.0.0 --port 4001 --colors"
     volumes:
-      - .:/app
+      - ./frontend:/app
     ports:
      - "4001:4001"
-    working_dir: /app/assets
+    working_dir: /app
 
   postgres:
     image: postgres:9.5

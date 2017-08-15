@@ -38,5 +38,6 @@ defmodule PlaylistPalWeb.Endpoint do
     key: "_playlist_pal_key",
     signing_salt: "71rt+EXe"
 
+  plug CORSPlug
   plug PlaylistPalWeb.Router
 end

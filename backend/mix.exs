@@ -42,7 +42,8 @@ defmodule PlaylistPal.Mixfile do
      {:comeonin, "~> 2.0"},
      {:poison, "~> 2.0"},
      {:ecto_autoslug_field, "~> 0.2"},
-     {:exfmt, "~> 0.2"}]
+     {:exfmt, "~> 0.2"},
+     {:cors_plug, "~> 1.2"}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

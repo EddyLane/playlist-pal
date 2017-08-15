@@ -23,7 +23,7 @@ import Phoenix.Socket
 
 socketServer : String
 socketServer =
-    "ws://localhost:4000/socket/websocket"
+    "ws://playlist-pal.local:4000/socket/websocket"
 
 
 initPhxSocket : Phoenix.Socket.Socket a

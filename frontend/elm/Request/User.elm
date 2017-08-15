@@ -11,6 +11,8 @@ import Request.Helpers exposing (apiUrl)
 import Ports
 import Dict
 
+headers : List Http.Header
+headers = []
 
 storeSession : Session -> Cmd msg
 storeSession session =
@@ -35,7 +37,7 @@ login { username, password } =
     in
         Http.request
             { method = "POST"
-            , headers = []
+            , headers = headers
             , url = apiUrl "/login"
             , body = body
             , expect = Http.expectStringResponse responseToSession
@@ -55,17 +57,25 @@ formatToken header =
 responseToSession : Http.Response String -> Result String Session
 responseToSession resp =
     let
-        token =
-            Dict.get "authorization" resp.headers
+        maybeToken =
+            resp.headers
+                |> Dict.get "authorization"
                 |> Maybe.andThen formatToken
 
-        user =
-            Decode.decodeString (Decode.field "data" User.decoder) resp.body
+        maybeUser =
+            resp.body
+                |> Decode.decodeString (Decode.field "data" User.decoder)
                 |> Result.toMaybe
     in
-        Session user token
-            |> Ok
-
+        case (maybeToken, maybeUser) of
+            (Just _, Just _) ->
+                Ok (Session maybeUser maybeToken)
+            (Just _, Nothing) ->
+                Err "Error parsing user in response content"
+            (Nothing, Just _) ->
+                Err "Error parsing token in response header"
+            (Nothing, Nothing) ->
+                Err "Error parsing user in response content and token in response header"
 
 register : { r | username : String, name : String, password : String } -> Http.Request Session
 register { username, name, password } =
@@ -83,7 +93,7 @@ register { username, name, password } =
     in
         Http.request
             { method = "POST"
-            , headers = []
+            , headers = headers
             , url = apiUrl "/users"
             , body = body
             , expect = Http.expectStringResponse responseToSession

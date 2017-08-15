@@ -12,16 +12,12 @@ const entryPath = './ts/app.ts';
 
 module.exports = {
     resolve: {
-        extensions: ['.js', '.ts', '.elm', '.css', '.scss'],
-        alias: {
-            phoenix_html: '../deps/phoenix_html/priv/static/phoenix_html',
-            phoenix: '../deps/phoenix/priv/static/phoenix'
-        }
+        extensions: ['.js', '.ts', '.elm', '.css', '.scss']
     },
     context: __dirname,
     plugins: [
         new webpack.HotModuleReplacementPlugin(),
-        new webpack.NamedModulesPlugin(),
+        new webpack.NamedModulesPlugin()
     ],
     entry: {
         app: [
