@@ -7,7 +7,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Data.Session as Session exposing (Session)
-import Data.Playlist as Playlist exposing (Playlist)
+import Data.Playlist as Playlist exposing (Playlist, slugToString)
 import Data.AuthToken as AuthToken exposing (AuthToken)
 import Request.Playlist exposing (create)
 import Bootstrap.Grid as Grid
@@ -166,62 +166,6 @@ type ExternalMsg
     | SetSocket
 
 
-
--- VIEW --
-
-
-form : Model -> Html Msg
-form model =
-    Form.form [ onSubmit SubmitForm ]
-        [ Input.text
-            [ Input.attrs
-                [ value model.name
-                , onInput SetName
-                ]
-            , Input.id "name"
-            ]
-        , Button.button
-            [ Button.primary
-            , Button.attrs
-                [ type_ "submit"
-                , disabled model.submitting
-                ]
-            ]
-            [ text "Create" ]
-        ]
-
-
-playlistItem : Playlist -> ListGroup.CustomItem Msg
-playlistItem playlist =
-    let
-        attrs =
-            [ ListGroup.attrs [ href ("#playlist/" ++ playlist.slug) ] ]
-    in
-        ListGroup.anchor attrs [ text playlist.name ]
-
-
-playlistList : List Playlist -> Html Msg
-playlistList playlists =
-    ListGroup.custom (List.map playlistItem playlists)
-
-
-view : Session -> Model -> Html Msg
-view session model =
-    Grid.container []
-        [ Grid.row []
-            [ Grid.col [ Col.sm ]
-                [ Form.viewErrors model.errors
-                , form model
-                ]
-            ]
-        , Grid.row []
-            [ Grid.col [ Col.sm ]
-                [ playlistList model.playlists
-                ]
-            ]
-        ]
-
-
 update : Session -> Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 update session msg model =
     case msg of
@@ -261,6 +205,62 @@ update session msg model =
             Debug.log ("AddPlaylist err: " ++ err) model
                 => Cmd.none
                 => NoOp
+
+
+
+-- VIEW --
+
+
+form : Model -> Html Msg
+form model =
+    Form.form [ onSubmit SubmitForm ]
+        [ Input.text
+            [ Input.attrs
+                [ value model.name
+                , onInput SetName
+                ]
+            , Input.id "name"
+            ]
+        , Button.button
+            [ Button.primary
+            , Button.attrs
+                [ type_ "submit"
+                , disabled model.submitting
+                ]
+            ]
+            [ text "Create" ]
+        ]
+
+
+playlistItem : Playlist -> ListGroup.CustomItem Msg
+playlistItem playlist =
+    let
+        attrs =
+            [ ListGroup.attrs [ href ("#playlist/" ++ (playlist.slug |> slugToString)) ] ]
+    in
+        ListGroup.anchor attrs [ text playlist.name ]
+
+
+playlistList : List Playlist -> Html Msg
+playlistList playlists =
+    ListGroup.custom (List.map playlistItem playlists)
+
+
+view : Session -> Model -> Html Msg
+view session model =
+    Grid.container []
+        [ Grid.row []
+            [ Grid.col [ Col.sm ]
+                [ Form.viewErrors model.errors
+                , form model
+                ]
+            ]
+        , Grid.row []
+            [ Grid.col [ Col.sm ]
+                [ playlistList model.playlists
+                ]
+            ]
+        ]
 
 
 

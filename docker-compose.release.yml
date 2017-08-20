@@ -2,18 +2,20 @@ version: '3'
 
 services:
 
-  elixir:
-    build: ./backend
-    command: sh -c "mix ecto.setup; mix phx.server"
+  erlang:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.release
+    command: sh -c "/app/prod/rel/playlist_pal/bin/playlist_pal foreground"
     environment:
-      - MIX_ENV=dev
+      - MIX_ENV=prod
       - PORT=4000
       - PG_HOST=postgres
       - PG_USERNAME=postgres
-      - PG_DATABASE=playlist_pal
+      - PG_DATABASE=playlist_pal_prod
       - PG_PASSWORD=postgres
     volumes:
-      - ./backend:/app
+      - ./backend/_build:/app
     ports:
       - "4000:4000"
     links:
@@ -21,20 +23,18 @@ services:
     depends_on:
       - postgres
 
-  webpack:
-    image: node:6
-    command: sh -c "npm rebuild node-sass; ./node_modules/.bin/webpack-dev-server --host 0.0.0.0 --port 4001 --colors"
+  nginx:
+    image: nginx:alpine
     volumes:
-      - ./frontend:/app
+      - ./frontend/dist:/usr/share/nginx/html
     ports:
-     - "4001:4001"
-    working_dir: /app
+      - "80:80"
 
   postgres:
     image: postgres:9.5
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=playlist_pal
+      - POSTGRES_DB=playlist_pal_prod
     ports:
       - "32783:5432"

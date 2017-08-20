@@ -18,8 +18,23 @@ defmodule PlaylistPal.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {PlaylistPal, []},
-     applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex, :comeonin, :poison, :ecto_autoslug_field]]
+        applications: [
+            :phoenix,
+            :phoenix_pubsub,
+            :phoenix_html,
+            :cowboy,
+            :logger,
+            :gettext,
+            :phoenix_ecto,
+            :postgrex,
+            :comeonin,
+            :poison,
+            :ecto_autoslug_field,
+            :cors_plug,
+            :guardian,
+            :slugger
+        ]
+    ]
   end
 
   # Specifies which paths to compile per environment.
@@ -42,8 +57,8 @@ defmodule PlaylistPal.Mixfile do
      {:comeonin, "~> 2.0"},
      {:poison, "~> 2.0"},
      {:ecto_autoslug_field, "~> 0.2"},
-     {:exfmt, "~> 0.2"},
-     {:cors_plug, "~> 1.2"}]
+     {:cors_plug, "~> 1.2"},
+     {:distillery, "~> 1.4", runtime: false}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

@@ -1,5 +1,6 @@
 module Route exposing (Route(..), href, modifyUrl, fromLocation)
 
+import Data.Playlist as Playlist
 import UrlParser as Url exposing (parseHash, s, (</>), string, oneOf, Parser)
 import Navigation exposing (Location)
 import Html exposing (Attribute)
@@ -12,6 +13,7 @@ type Route
     | Logout
     | Register
     | Playlists
+    | Playlist Playlist.Slug
 
 
 route : Parser (Route -> a) a
@@ -22,6 +24,7 @@ route =
         , Url.map Logout (s "logout")
         , Url.map Register (s "register")
         , Url.map Playlists (s "playlists")
+        , Url.map Playlist (s "playlist" </> Playlist.slugParser)
         ]
 
 
@@ -48,6 +51,10 @@ routeToString page =
 
                 Register ->
                     [ "register" ]
+
+                Playlist slug ->
+                    [ "playlist", Playlist.slugToString slug ]
+
     in
         "#/" ++ (String.join "/" pieces)
 

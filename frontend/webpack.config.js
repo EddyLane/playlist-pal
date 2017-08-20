@@ -1,36 +1,29 @@
 const path = require('path');
 const webpack = require('webpack');
-const env = process.env.MIX_ENV || 'dev';
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const merge = require('webpack-merge');
+
+const env = process.env.NODE_ENV || 'dev';
 const prod = env === 'prod';
 
-if (prod) {
-    throw 'Prod not ready yet!';
-}
-
-const publicPath = 'http://localhost:4001/';
+const publicPath = '/';
 const entryPath = './ts/app.ts';
 
-module.exports = {
+const commonConfig = {
     resolve: {
         extensions: ['.js', '.ts', '.elm', '.css', '.scss']
     },
     context: __dirname,
     plugins: [
         new webpack.HotModuleReplacementPlugin(),
-        new webpack.NamedModulesPlugin()
+        new webpack.NamedModulesPlugin(),
+        new HtmlWebpackPlugin({
+            template: 'index.html',
+            inject: 'body',
+            filename: 'index.html'
+        })
     ],
-    entry: {
-        app: [
-            `webpack-dev-server/client?${publicPath}`,
-            'webpack/hot/only-dev-server',
-            entryPath
-        ]
-    },
-    output: {
-        path: path.resolve(__dirname, './dist'),
-        filename: '[name].bundle.js',
-        publicPath
-    },
     devServer: {
         stats: 'errors-only'
     },
@@ -56,13 +49,73 @@ module.exports = {
                 use: [
                     'awesome-typescript-loader'
                 ]
-            },
-            {
-                test: /\.elm$/,
-                exclude: [/elm-stuff/, /node_modules/],
-                loader:  'elm-hot-loader!elm-webpack-loader?verbose=true&warn=true&debug=true&pathToMake=./node_modules/.bin/elm-make'
-            },
+            }
         ],
         noParse: /\.elm$/
     }
 };
+
+let config;
+
+if (prod) {
+
+    config = merge(commonConfig, {
+        entry: entryPath,
+        module: {
+            rules: [
+                {
+                    test: /\.elm$/,
+                    exclude: [/elm-stuff/, /node_modules/],
+                    use: 'elm-webpack-loader?pathToMake=./node_modules/.bin/elm-make'
+                },
+                {
+                    test: /\.sc?ss$/,
+                    use: ExtractTextPlugin.extract({
+                        fallback: 'style-loader',
+                        use: ['css-loader', 'sass-loader']
+                    })
+                }
+            ]
+        },
+        output: {
+            path: path.resolve(__dirname, './dist'),
+            filename: 'static/js/[name]-[hash].bundle.js'
+        },
+        plugins: [
+            new ExtractTextPlugin({
+                filename: 'static/css/[name]-[hash].css',
+                allChunks: true,
+            }),
+            new webpack.optimize.UglifyJsPlugin()
+        ]
+    });
+
+} else {
+
+    config = merge(commonConfig, {
+        entry: {
+            app: [
+                `webpack-dev-server/client?http://localhost:4001`,
+                'webpack/hot/only-dev-server',
+                entryPath
+            ]
+        },
+        output: {
+            path: path.resolve(__dirname, './dist'),
+            filename: '[name].bundle.js',
+            publicPath
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.elm$/,
+                    exclude: [/elm-stuff/, /node_modules/],
+                    loader: 'elm-hot-loader!elm-webpack-loader?verbose=true&warn=true&debug=true&pathToMake=./node_modules/.bin/elm-make'
+                }
+            ]
+        }
+    });
+
+}
+
+module.exports = config;

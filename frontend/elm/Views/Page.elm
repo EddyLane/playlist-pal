@@ -21,6 +21,7 @@ type ActivePage
     | Login
     | Register
     | Playlists
+    | Playlist
 
 
 {-| Take a page's Html and frame it with a header and footer.

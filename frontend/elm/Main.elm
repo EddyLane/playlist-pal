@@ -9,6 +9,7 @@ import Views.Page as Page exposing (ActivePage)
 import Json.Decode as Decode exposing (Value)
 import Page.Login as Login
 import Page.Playlists as Playlists
+import Page.Playlist as Playlist
 import Page.Register as Register
 import Page.NotFound as NotFound
 import Page.Home as Home
@@ -31,6 +32,7 @@ type Page
     | Login Login.Model
     | Register Register.Model
     | Playlists Playlists.Model
+    | Playlist Playlist.Model
 
 
 type PageState
@@ -46,6 +48,9 @@ pageToActivePage page =
 
         Playlists _ ->
             Page.Playlists
+
+        Playlist _ ->
+            Page.Playlist
 
         Login _ ->
             Page.Login
@@ -187,6 +192,11 @@ viewPage model isLoading page =
                     |> frame activePage
                     |> Html.map PlaylistsMsg
 
+            Playlist subModel ->
+                Playlist.view session subModel
+                    |> frame activePage
+                    |> Html.map PlaylistMsg
+
 
 
 -- SUBSCRIPTIONS --
@@ -251,6 +261,7 @@ type Msg
     | LoginMsg Login.Msg
     | RegisterMsg Register.Msg
     | PlaylistsMsg Playlists.Msg
+    | PlaylistMsg Playlist.Msg
     | PlaylistsLoaded (Result PageLoadError Encode.Value)
     | HeaderMsg Header.Msg
     | SetSocket (Phoenix.Socket.Socket Msg)
@@ -328,6 +339,9 @@ setRoute maybeRoute model =
 
                     ( _, _, _ ) ->
                         errored Page.Other "You must be signed in to view your playlists page"
+
+            Just (Route.Playlist slug) ->
+                { model | pageState = Loaded (Playlist Playlist.initialModel) } => Cmd.none
 
             Just (Route.Logout) ->
                 let
