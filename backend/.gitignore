@@ -6,6 +6,9 @@ web/static/dist
 /deps
 /*.ez
 
+rel/plugins
+
+
 # Generated on crash by the VM
 erl_crash.dump
 
@@ -21,3 +24,5 @@ assets/node_modules
 assets/elm-stuff
 npm-debug.log
 .idea/
+
+playlist_pal.tar.gz

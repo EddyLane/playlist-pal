@@ -3,10 +3,8 @@ version: '3'
 services:
 
   erlang:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.release
-    command: sh -c "/app/prod/rel/playlist_pal/bin/playlist_pal foreground"
+    image: eddylane/playlist_pal_backend:release-0.0.1
+    command: foreground
     environment:
       - MIX_ENV=prod
       - PORT=4000
@@ -14,21 +12,17 @@ services:
       - PG_USERNAME=postgres
       - PG_DATABASE=playlist_pal_prod
       - PG_PASSWORD=postgres
-    volumes:
-      - ./backend/_build:/app
-    ports:
-      - "4000:4000"
     links:
       - postgres
     depends_on:
       - postgres
+    ports:
+       - "4000:4000"
 
   nginx:
-    image: nginx:alpine
-    volumes:
-      - ./frontend/dist:/usr/share/nginx/html
+    image: eddylane/playlist_pal_frontend:release-0.0.1
     ports:
-      - "80:80"
+       - "80:80"
 
   postgres:
     image: postgres:9.5
