@@ -1,6 +1,7 @@
 module Request.Helpers exposing (apiUrl)
 
+import Data.ApiUrl as ApiUrl exposing (ApiUrl, apiUrlToString)
 
-apiUrl : String -> String
-apiUrl str =
-    "http://playlist-pal.local:4000/api" ++ str
+apiUrl : ApiUrl -> String -> String
+apiUrl baseUrl str =
+    (apiUrlToString baseUrl) ++ "/api" ++ str

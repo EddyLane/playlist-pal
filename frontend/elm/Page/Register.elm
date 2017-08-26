@@ -8,6 +8,7 @@ import Views.Form as Form
 import Json.Decode as Decode exposing (field, decodeString, string, Decoder)
 import Json.Decode.Pipeline as Pipeline exposing (optional, decode)
 import Data.Session as Session exposing (Session)
+import Data.ApiUrl as ApiUrl exposing (ApiUrl)
 import Validate exposing (ifBlank)
 import Request.User exposing (storeSession)
 import Http
@@ -100,14 +101,14 @@ type ExternalMsg
     | SetSession Session
 
 
-update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
-update msg model =
+update : Msg -> Model -> ApiUrl -> ( ( Model, Cmd Msg ), ExternalMsg )
+update msg model baseUrl =
     case msg of
         SubmitForm ->
             case validate model of
                 [] ->
                     { model | errors = [] }
-                        => Http.send RegisterCompleted (Request.User.register model)
+                        => Http.send RegisterCompleted (Request.User.register model baseUrl)
                         => NoOp
 
                 errors ->

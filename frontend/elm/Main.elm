@@ -4,6 +4,7 @@ import Navigation exposing (Location)
 import Route exposing (Route)
 import Data.Session as Session exposing (Session)
 import Data.User as User exposing (User, Username, usernameToString)
+import Data.Config as Config exposing (Config)
 import Page.Errored as Errored exposing (PageLoadError)
 import Views.Page as Page exposing (ActivePage)
 import Json.Decode as Decode exposing (Value)
@@ -65,12 +66,12 @@ pageToActivePage page =
 
 -- MODEL --
 
-
 type alias Model =
     { session : Session
     , pageState : PageState
     , headerState : Header.Model
     , phxSocket : Phoenix.Socket.Socket Msg
+    , config : Config
     }
 
 
@@ -81,6 +82,9 @@ init val location =
             decodeSessionFromJson val
                 |> Maybe.withDefault Session.initialModel
 
+        configModel =
+            decodeConfigFromJson val
+
         ( headerModel, headerCmd ) =
             Header.initialState
 
@@ -90,6 +94,7 @@ init val location =
                 , session = sessionModel
                 , headerState = headerModel
                 , phxSocket = initPhxSocket
+                , config = configModel
                 }
 
         commands =
@@ -100,14 +105,19 @@ init val location =
     in
         ( pageModel, commands )
 
-
 decodeSessionFromJson : Value -> Maybe Session
 decodeSessionFromJson json =
     json
-        |> Decode.decodeValue Decode.string
+        |> Decode.decodeValue (Decode.at ["session"] Decode.string)
         |> Result.toMaybe
         |> Maybe.andThen (Decode.decodeString Session.decoder >> Result.toMaybe)
 
+decodeConfigFromJson : Value -> Config
+decodeConfigFromJson json =
+    json
+        |> Decode.decodeValue (Decode.at ["config"] Config.decoder)
+        |> Result.toMaybe
+        |> Maybe.withDefault Config.defaultModel
 
 initialPage : Page
 initialPage =
@@ -308,6 +318,9 @@ setRoute maybeRoute model =
         activePage =
             page |> pageToActivePage
 
+        apiUrl =
+            model.config.apiUrl
+
         errored =
             pageErrored model
     in
@@ -393,6 +406,9 @@ updatePage page msg model =
                 { model | pageState = Loaded (toModel newModel) }
                     => Cmd.map toMsg newCmd
 
+        baseUrl =
+            model.config.apiUrl
+
         errored =
             pageErrored model
     in
@@ -417,7 +433,7 @@ updatePage page msg model =
             ( LoginMsg subMsg, Login subModel ) ->
                 let
                     ( ( pageModel, cmd ), msgFromPage ) =
-                        Login.update subMsg subModel
+                        Login.update subMsg subModel baseUrl
 
                     ( newModel, channelCmd ) =
                         case msgFromPage of
@@ -436,7 +452,7 @@ updatePage page msg model =
             ( RegisterMsg subMsg, Register subModel ) ->
                 let
                     ( ( pageModel, cmd ), msgFromPage ) =
-                        Register.update subMsg subModel
+                        Register.update subMsg subModel baseUrl
 
                     newModel =
                         case msgFromPage of
@@ -468,7 +484,7 @@ updatePage page msg model =
             ( PlaylistsMsg subMsg, Playlists subModel ) ->
                 let
                     ( ( pageModel, cmd ), msgFromPage ) =
-                        Playlists.update model.session subMsg subModel
+                        Playlists.update session baseUrl subMsg subModel
                 in
                     { model | pageState = Loaded (Playlists pageModel) }
                         => Cmd.map PlaylistsMsg cmd
@@ -527,7 +543,6 @@ updatePage page msg model =
             ( _, _ ) ->
                 -- Disregard incoming messages that arrived for the wrong page
                 model => Debug.log "COMMAND FALLING THROUGH THE FLOOR" Cmd.none
-
 
 
 -- MAIN --

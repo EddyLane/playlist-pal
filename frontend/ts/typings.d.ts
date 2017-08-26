@@ -1,7 +1,5 @@
 interface Window {
-    user: {
-        name: string;
-        username: string;
-    };
-    token: string;
+    __env: {
+        API_URL: string;
+    }
 }

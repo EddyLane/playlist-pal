@@ -4,14 +4,16 @@ import Http
 import Data.Playlist as Playlist exposing (Playlist, decoder)
 import Data.Session as Session exposing (Session)
 import Data.AuthToken as AuthToken exposing (tokenToString)
+import Data.ApiUrl as ApiUrl exposing (ApiUrl, apiUrlToString)
+
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Util exposing ((=>))
 import Request.Helpers exposing (apiUrl)
 
 
-create : { r | name : String } -> Session -> Http.Request Playlist
-create { name } session =
+create : { r | name : String } -> Session -> ApiUrl -> Http.Request Playlist
+create { name } session baseUrl =
     let
         playlist =
             Encode.object
@@ -33,7 +35,7 @@ create { name } session =
         Http.request
             { method = "POST"
             , headers = [ authHeader ]
-            , url = apiUrl "/playlists"
+            , url = apiUrl baseUrl "/playlists"
             , body = body
             , expect = Http.expectJson decode
             , timeout = Nothing

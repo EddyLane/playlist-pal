@@ -8,10 +8,10 @@ services:
     environment:
       - MIX_ENV=dev
       - PORT=4000
-      - PG_HOST=postgres
-      - PG_USERNAME=postgres
-      - PG_DATABASE=playlist_pal
-      - PG_PASSWORD=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=playlist_pal
+      - POSTGRES_PASSWORD=postgres
     volumes:
       - ./backend:/app
     ports:
@@ -23,11 +23,11 @@ services:
 
   webpack:
     image: node:6
-    command: sh -c "npm rebuild node-sass; ./node_modules/.bin/webpack-dev-server --host 0.0.0.0 --port 4001 --colors"
+    command: sh -c "npm rebuild node-sass; ./node_modules/.bin/webpack-dev-server --host 0.0.0.0 --port 80 --colors"
     volumes:
       - ./frontend:/app
     ports:
-     - "4001:4001"
+     - "80:80"
     working_dir: /app
 
   postgres:

@@ -4,6 +4,7 @@ import Http
 import Data.User as User exposing (User)
 import Data.Session as Session exposing (Session)
 import Data.AuthToken as AuthToken exposing (AuthToken, stringToToken)
+import Data.ApiUrl as ApiUrl exposing (ApiUrl)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Util exposing ((=>))
@@ -22,8 +23,8 @@ storeSession session =
         |> Ports.storeSession
 
 
-login : { r | username : String, password : String } -> Http.Request Session
-login { username, password } =
+login : { r | username : String, password : String } -> ApiUrl -> Http.Request Session
+login { username, password } baseUrl =
     let
         user =
             Encode.object
@@ -38,7 +39,7 @@ login { username, password } =
         Http.request
             { method = "POST"
             , headers = headers
-            , url = apiUrl "/login"
+            , url = apiUrl baseUrl "/login"
             , body = body
             , expect = Http.expectStringResponse responseToSession
             , timeout = Nothing
@@ -77,8 +78,8 @@ responseToSession resp =
             (Nothing, Nothing) ->
                 Err "Error parsing user in response content and token in response header"
 
-register : { r | username : String, name : String, password : String } -> Http.Request Session
-register { username, name, password } =
+register : { r | username : String, name : String, password : String } -> ApiUrl -> Http.Request Session
+register { username, name, password } baseUrl =
     let
         user =
             Encode.object
@@ -94,7 +95,7 @@ register { username, name, password } =
         Http.request
             { method = "POST"
             , headers = headers
-            , url = apiUrl "/users"
+            , url = apiUrl baseUrl "/users"
             , body = body
             , expect = Http.expectStringResponse responseToSession
             , timeout = Nothing

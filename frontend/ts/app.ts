@@ -1,6 +1,13 @@
 import '../sass/main.scss';
 
-const app = require('../elm/Main.elm').Main.fullscreen(localStorage.session || null);
+console.log(window.__env);
+
+const app = require('../elm/Main.elm').Main.fullscreen({
+    session: localStorage.session || null,
+    config: {
+        apiUrl: window.__env.API_URL
+    }
+});
 
 app.ports.storeSession.subscribe(session => localStorage.session = session);
 

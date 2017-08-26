@@ -13,12 +13,12 @@ use Mix.Config
 # which you typically run after static files are built.
 config :playlist_pal, PlaylistPalWeb.Endpoint,
   http: [port: {:system, "PORT"}],
-  url: [host: "http://playlist-pal.local", port: {:system, "PORT"}],
+  url: [host: "${HOST}", port: {:system, "PORT"}],
   server: true,
   root: ".",
   version: Application.spec(:myapp, :vsn),
-  secret_key_base: "LEX1gBryjjocFrek0OAVEBvuT6IxLuCVn5NhXlPt0V3SPZWygTOylkAg3kwHZf+1",
-  check_origin: ["http://playlist-pal.local"]
+  secret_key_base: "${SECRET_KEY_BASE}",
+  check_origin: ["${HOST}"]
 
 # Do not print debug messages in production
 config :logger, level: :info
@@ -63,9 +63,13 @@ config :logger, level: :info
 # Configure your database
 config :playlist_pal, PlaylistPal.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  hostname: "postgres",
-  database: "playlist_pal_prod",
+  username: "${POSTGRES_USER}",
+  password: "${POSTGRES_PASSWORD}",
+  hostname: "${POSTGRES_HOST}",
+  database: "${POSTGRES_DB}",
+  port: "${POSTGRES_PORT}",
   pool_size: 20
 
+
+config :guardian, Guardian,
+  secret_key: "${GUARDIAN_SECRET_KEY}"

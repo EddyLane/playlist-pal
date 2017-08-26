@@ -15,7 +15,7 @@ import Data.Session as Session exposing (Session)
 import Http
 import Util exposing ((=>))
 import Request.User exposing (storeSession)
-
+import Data.ApiUrl as ApiUrl exposing (ApiUrl)
 
 -- MODEL --
 
@@ -94,14 +94,14 @@ type ExternalMsg
     | SetSession Session
 
 
-update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
-update msg model =
+update : Msg -> Model -> ApiUrl -> ( ( Model, Cmd Msg ), ExternalMsg )
+update msg model baseUrl =
     case msg of
         SubmitForm ->
             case validate model of
                 [] ->
                     { model | errors = [] }
-                        => Http.send LoginCompleted (Request.User.login model)
+                        => Http.send LoginCompleted (Request.User.login model baseUrl)
                         => NoOp
 
                 errors ->

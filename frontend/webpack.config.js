@@ -79,11 +79,11 @@ if (prod) {
         },
         output: {
             path: path.resolve(__dirname, './dist'),
-            filename: 'static/js/[name]-[hash].bundle.js'
+            filename: 'static/js/[name].bundle.js'
         },
         plugins: [
             new ExtractTextPlugin({
-                filename: 'static/css/[name]-[hash].css',
+                filename: 'static/css/[name].css',
                 allChunks: true,
             }),
             new webpack.optimize.UglifyJsPlugin()
@@ -95,7 +95,7 @@ if (prod) {
     config = merge(commonConfig, {
         entry: {
             app: [
-                `webpack-dev-server/client?http://localhost:4001`,
+                `webpack-dev-server/client?http://localhost`,
                 'webpack/hot/only-dev-server',
                 entryPath
             ]

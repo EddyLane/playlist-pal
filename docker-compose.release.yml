@@ -8,10 +8,14 @@ services:
     environment:
       - MIX_ENV=prod
       - PORT=4000
-      - PG_HOST=postgres
-      - PG_USERNAME=postgres
-      - PG_DATABASE=playlist_pal_prod
-      - PG_PASSWORD=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=playlist_pal_prod
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PORT=5432
+      - GUARDIAN_SECRET_KEY=playlist_pal_secret_key
+      - SECRET_KEY_BASE=secret_key_base
+      - HOST=playlist_pal.release
     links:
       - postgres
     depends_on:
@@ -21,6 +25,9 @@ services:
 
   nginx:
     image: eddylane/playlist_pal_frontend:release-0.0.1
+    environment:
+      - API_URL=playlist_pal.release
+      - CONFIG_VARS=API_URL
     ports:
        - "80:80"
 

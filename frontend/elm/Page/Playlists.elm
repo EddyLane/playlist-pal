@@ -9,6 +9,7 @@ import Html.Events exposing (..)
 import Data.Session as Session exposing (Session)
 import Data.Playlist as Playlist exposing (Playlist, slugToString)
 import Data.AuthToken as AuthToken exposing (AuthToken)
+import Data.ApiUrl as ApiUrl exposing (ApiUrl)
 import Request.Playlist exposing (create)
 import Bootstrap.Grid as Grid
 import Bootstrap.ListGroup as ListGroup
@@ -166,8 +167,8 @@ type ExternalMsg
     | SetSocket
 
 
-update : Session -> Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
-update session msg model =
+update : Session -> ApiUrl -> Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
+update session apiUrl msg model =
     case msg of
         SetName name ->
             { model | name = name }
@@ -178,7 +179,7 @@ update session msg model =
             case validate model of
                 [] ->
                     { model | errors = [], submitting = True }
-                        => Http.send CreatePlaylistCompleted (Request.Playlist.create { name = model.name } session)
+                        => Http.send CreatePlaylistCompleted (Request.Playlist.create { name = model.name } session apiUrl)
                         => NoOp
 
                 errors ->
