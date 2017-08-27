@@ -2,6 +2,7 @@ module Channels.UserSocket exposing (initPhxSocket)
 
 import Data.AuthToken exposing (AuthToken, tokenToString)
 import Data.User exposing (User)
+import Data.ApiUrl exposing (ApiUrl, apiUrlToString)
 import Phoenix.Socket
 
 
@@ -21,14 +22,10 @@ import Phoenix.Socket
 --        channels
 
 
-socketServer : String
-socketServer =
-    "ws://playlist-pal.local:4000/socket/websocket"
 
-
-initPhxSocket : Phoenix.Socket.Socket a
-initPhxSocket =
-    Phoenix.Socket.init socketServer
+initPhxSocket : ApiUrl -> Phoenix.Socket.Socket a
+initPhxSocket baseUrl =
+    Phoenix.Socket.init ("ws://" ++ (apiUrlToString baseUrl) ++ "/socket/websocket")
         |> Phoenix.Socket.withDebug
 
 

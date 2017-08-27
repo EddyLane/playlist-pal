@@ -85,6 +85,9 @@ init val location =
         configModel =
             decodeConfigFromJson val
 
+        phxSocket =
+            initPhxSocket configModel.apiUrl
+
         ( headerModel, headerCmd ) =
             Header.initialState
 
@@ -93,7 +96,7 @@ init val location =
                 { pageState = Loaded initialPage
                 , session = sessionModel
                 , headerState = headerModel
-                , phxSocket = initPhxSocket
+                , phxSocket = phxSocket
                 , config = configModel
                 }
 

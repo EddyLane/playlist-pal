@@ -1,0 +1,23 @@
+[
+  {
+    "name": "playlist_pal_frontend_${environment}",
+    "image": "618010546189.dkr.ecr.eu-west-1.amazonaws.com/playlist_pal_frontend:${frontend_version}",
+    "essential": true,
+    "memoryReservation": 256,
+    "portMappings": [
+      {
+        "containerPort": 80
+      }
+    ],
+    "environment": [
+      {
+        "Name": "API_URL",
+        "Value": "${api_url}"
+      },
+      {
+        "Name": "CONFIG_VARS",
+        "Value": "API_URL"
+      }
+    ]
+  }
+]

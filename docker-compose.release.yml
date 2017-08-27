@@ -15,7 +15,7 @@ services:
       - POSTGRES_PORT=5432
       - GUARDIAN_SECRET_KEY=playlist_pal_secret_key
       - SECRET_KEY_BASE=secret_key_base
-      - HOST=playlist_pal.release
+      - HOST=playlist-pal.local
     links:
       - postgres
     depends_on:
@@ -26,7 +26,7 @@ services:
   nginx:
     image: eddylane/playlist_pal_frontend:release-0.0.1
     environment:
-      - API_URL=playlist_pal.release
+      - API_URL=localhost:4000
       - CONFIG_VARS=API_URL
     ports:
        - "80:80"

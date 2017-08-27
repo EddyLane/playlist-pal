@@ -60,8 +60,8 @@ release_frontend: install_frontend ecr_login
 	-t eddylane/playlist_pal_frontend:release-0.0.1 \
 	-t eddylane/playlist_pal_frontend:latest
 
-	#docker push ${FRONTEND_REPOSITORY_URL}:${GIT_VERSION}
-	#docker push ${FRONTEND_REPOSITORY_URL}:latest
+	docker push ${FRONTEND_REPOSITORY_URL}:${GIT_VERSION}
+	docker push ${FRONTEND_REPOSITORY_URL}:latest
 
 release_backend: install_backend ecr_login
 	@echo "Building backend release"
@@ -84,8 +84,8 @@ release_backend: install_backend ecr_login
 	-t eddylane/playlist_pal_backend:release-0.0.1 \
 	-t eddylane/playlist_pal_backend:latest
 
-	#docker push ${BACKEND_REPOSITORY_URL}:${GIT_VERSION}
-	#docker push ${BACKEND_REPOSITORY_URL}:latest
+	docker push ${BACKEND_REPOSITORY_URL}:${GIT_VERSION}
+	docker push ${BACKEND_REPOSITORY_URL}:latest
 
 terraform_init:
 	docker run --rm \

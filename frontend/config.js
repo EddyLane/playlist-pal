@@ -1,3 +1,3 @@
 window.__env = {
-    "API_URL": "playlist_pal.local:4000"
+    "API_URL": "localhost:4000",
 };

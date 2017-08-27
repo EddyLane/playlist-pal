@@ -1,0 +1,62 @@
+[
+  {
+    "name": "playlist_pal_backend_${environment}",
+    "image": "618010546189.dkr.ecr.eu-west-1.amazonaws.com/playlist_pal_backend:${backend_version}",
+    "essential": true,
+    "memoryReservation": 128,
+    "portMappings": [
+      {
+        "containerPort": 80
+      }
+    ],
+    "command": [
+      "foreground"
+    ],
+    "environment": [
+      {
+        "Name": "WEAVE_CIDR",
+        "Value": "net:${weave_cidr}"
+      },
+      {
+        "Name": "SECRET_KEY_BASE",
+        "Value": "${secret_key_base}"
+      },
+      {
+        "Name": "GUARDIAN_SECRET_KEY",
+        "Value": "${guadian_secret_key}"
+      },
+      {
+        "Name": "DATABASE_HOSTNAME",
+        "Value": "postgres_${environment}"
+      },
+      {
+        "Name": "DATABASE_PORT",
+        "Value": "5432"
+      },
+      {
+        "Name": "DATABASE_USERNAME",
+        "Value": "${database_username}"
+      },
+      {
+        "Name": "DATABASE_PASSWORD",
+        "Value": "${database_password}"
+      },
+      {
+        "Name": "DATABASE_NAME",
+        "Value": "${database_name}"
+      },
+      {
+        "Name": "PORT",
+        "Value": "80"
+      },
+      {
+        "Name": "MIX_ENV",
+        "Value": "prod"
+      },
+      {
+        "Name": "NODE_COOKIE",
+        "Value": "${node_cookie}"
+      }
+    ]
+  }
+]

@@ -9,8 +9,8 @@ config :playlist_pal, PlaylistPalWeb.Endpoint,
   http: [port: System.get_env("PORT")],
   debug_errors: true,
   code_reloader: true,
-  check_origin: false
-
+  check_origin: false,
+  url: [host: "localhost", port: System.get_env("PORT")]
 
 # Watch static and templates for browser reloading.
 config :playlist_pal, PlaylistPalWeb.Endpoint,
