@@ -41,3 +41,32 @@ data "template_file" "frontend" {
   }
 
 }
+
+
+resource "aws_security_group" "ecs" {
+  name = "ecs-${var.environment}"
+  description = "Allows all traffic"
+  vpc_id = "${aws_vpc.app_cluster.id}"
+
+  ingress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    security_groups = ["${aws_security_group.alb_sg.id}"]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+}

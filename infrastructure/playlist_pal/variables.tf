@@ -15,3 +15,7 @@ variable "api_url" {
 variable "aws_availability_zones" {
   default = "eu-west-1a,eu-west-1b"
 }
+
+variable "domain" {
+  type = "string"
+}

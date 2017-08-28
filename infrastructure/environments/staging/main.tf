@@ -17,4 +17,5 @@ terraform {
 module "main" {
   source = "../../playlist_pal"
   environment = "staging"
+  domain = "playlist-pal.eddylane.co.uk"
 }

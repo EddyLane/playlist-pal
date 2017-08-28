@@ -9,13 +9,21 @@ resource "aws_iam_role" "ecs_service" {
       "Sid": "",
       "Effect": "Allow",
       "Principal": {
-        "Service": "ecs.amazonaws.com"
+        "Service": [
+          "ec2.amazonaws.com",
+          "ecs.amazonaws.com"
+        ]
       },
       "Action": "sts:AssumeRole"
     }
   ]
 }
 EOF
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_iam" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+  role = "${aws_iam_role.ecs_service.name}"
 }
 
 resource "aws_iam_role_policy" "ecs_service" {
@@ -41,4 +49,10 @@ resource "aws_iam_role_policy" "ecs_service" {
   ]
 }
 EOF
+}
+
+
+resource "aws_iam_instance_profile" "ecs_service" {
+  name = "ecs_service.${var.environment}"
+  role = "${aws_iam_role.ecs_service.name}"
 }
