@@ -3,12 +3,21 @@
     "name": "playlist_pal_frontend_${environment}",
     "image": "618010546189.dkr.ecr.eu-west-1.amazonaws.com/playlist_pal_frontend:${frontend_version}",
     "essential": true,
-    "memoryReservation": 256,
+    "memoryReservation": 128,
     "portMappings": [
       {
-        "containerPort": 80
+        "containerPort": 80,
+        "hostPort": 80
       }
     ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${environment}.playlist-pal-container-logs",
+        "awslogs-region": "${cloudwatch_region}",
+        "awslogs-stream-prefix": "frontend"
+      }
+    },
     "environment": [
       {
         "Name": "API_URL",

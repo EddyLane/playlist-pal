@@ -88,9 +88,19 @@ release_backend: install_backend ecr_login
 	docker push ${BACKEND_REPOSITORY_URL}:latest
 
 terraform_init:
+
+#	SECRET_FILE_LOCATION=${CURDIR}/infrastructure/environments/${ENV}/secret.tfvars
+#
+#	@echo "${SECRET_FILE_LOCATION}"
+#
+#	if [ ! -f ${SECRET_FILE_LOCATION} ] ; \
+#    then \
+#         $(error Cannot find secret variable file in environment dir); \
+#    fi;
+
 	docker run --rm \
-	--volume ${CURDIR}:/app \
-	--workdir /app/infrastructure/environments/${ENV} \
+	--volume ${CURDIR}/infrastructure:/app \
+	--workdir /app/environments/${ENV} \
 	--env AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
 	--env AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
 	--env AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} \
@@ -99,31 +109,34 @@ terraform_init:
 
 terraform_plan: terraform_init
 	docker run --rm \
-	--volume ${CURDIR}:/app \
-	--workdir /app/infrastructure/environments/${ENV} \
+	--volume ${CURDIR}/infrastructure:/app \
+	--workdir /app/environments/${ENV} \
 	--env AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
 	--env AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
 	--env AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} \
 	hashicorp/terraform:${TERRAFORM_VERSION} \
-	plan
+	plan \
+	-var-file="secret.tfvars"
 
 terraform_apply: terraform_init
 	docker run --rm \
-	--volume ${CURDIR}:/app \
-	--workdir /app/infrastructure/environments/${ENV} \
+	--volume ${CURDIR}/infrastructure:/app \
+	--workdir /app/environments/${ENV} \
 	--env AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
 	--env AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
 	--env AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} \
 	hashicorp/terraform:${TERRAFORM_VERSION} \
-	apply
+	apply \
+	-var-file="secret.tfvars"
 
 terraform_destroy: terraform_init
 	docker run --rm \
-	--volume ${CURDIR}:/app \
-	--workdir /app/infrastructure/environments/${ENV} \
+	--volume ${CURDIR}/infrastructure:/app \
+	--workdir /app/environments/${ENV} \
 	--env AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
 	--env AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
 	--env AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} \
 	hashicorp/terraform:${TERRAFORM_VERSION} \
 	destroy \
+	-var-file="secret.tfvars" \
 	-force

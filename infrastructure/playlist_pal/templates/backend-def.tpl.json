@@ -3,59 +3,64 @@
     "name": "playlist_pal_backend_${environment}",
     "image": "618010546189.dkr.ecr.eu-west-1.amazonaws.com/playlist_pal_backend:${backend_version}",
     "essential": true,
-    "memoryReservation": 128,
+    "memoryReservation": 256,
     "portMappings": [
       {
-        "containerPort": 80
+        "containerPort": 4000,
+        "hostPort": 4000
       }
     ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${environment}.playlist-pal-container-logs",
+        "awslogs-region": "${cloudwatch_region}",
+        "awslogs-stream-prefix": "backend"
+      }
+    },
     "command": [
       "foreground"
     ],
     "environment": [
       {
-        "Name": "WEAVE_CIDR",
-        "Value": "net:${weave_cidr}"
+        "Name": "MIX_ENV",
+        "Value": "prod"
+      },
+      {
+        "Name": "PORT",
+        "Value": "4000"
+      },
+      {
+        "Name": "POSTGRES_HOST",
+        "Value": "${postgres_host}"
+      },
+      {
+        "Name": "POSTGRES_USER",
+        "Value": "${postgres_user}"
+      },
+      {
+        "Name": "POSTGRES_DB",
+        "Value": "${postgres_db}"
+      },
+      {
+        "Name": "POSTGRES_PASSWORD",
+        "Value": "${postgres_password}"
+      },
+      {
+        "Name": "POSTGRES_PORT",
+        "Value": "${postgres_port}"
+      },
+      {
+        "Name": "GUARDIAN_SECRET_KEY",
+        "Value": "${guardian_secret_key}"
       },
       {
         "Name": "SECRET_KEY_BASE",
         "Value": "${secret_key_base}"
       },
       {
-        "Name": "GUARDIAN_SECRET_KEY",
-        "Value": "${guadian_secret_key}"
-      },
-      {
-        "Name": "DATABASE_HOSTNAME",
-        "Value": "postgres_${environment}"
-      },
-      {
-        "Name": "DATABASE_PORT",
-        "Value": "5432"
-      },
-      {
-        "Name": "DATABASE_USERNAME",
-        "Value": "${database_username}"
-      },
-      {
-        "Name": "DATABASE_PASSWORD",
-        "Value": "${database_password}"
-      },
-      {
-        "Name": "DATABASE_NAME",
-        "Value": "${database_name}"
-      },
-      {
-        "Name": "PORT",
-        "Value": "80"
-      },
-      {
-        "Name": "MIX_ENV",
-        "Value": "prod"
-      },
-      {
-        "Name": "NODE_COOKIE",
-        "Value": "${node_cookie}"
+        "Name": "HOST",
+        "Value": "${domain}"
       }
     ]
   }

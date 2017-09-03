@@ -1,0 +1,37 @@
+
+[
+  {
+    "name": "postgres_${environment}",
+    "image": "postgres:latest",
+    "essential": true,
+    "memoryReservation": 256,
+    "portMappings": [
+      {
+        "containerPort": 5432,
+        "hostPort": 5432
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${environment}.playlist-pal-container-logs",
+        "awslogs-region": "${cloudwatch_region}",
+        "awslogs-stream-prefix": "postgres"
+      }
+    },
+    "environment": [
+      {
+        "Name" : "POSTGRES_USER",
+        "Value": "${postgres_user}"
+      },
+      {
+        "Name" : "POSTGRES_PASSWORD",
+        "Value": "${postgres_password}"
+      },
+      {
+        "Name" : "POSTGRES_DB",
+        "Value": "${postgres_db}"
+      }
+    ]
+  }
+]

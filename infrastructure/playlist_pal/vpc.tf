@@ -20,3 +20,20 @@ resource "aws_subnet" "app_cluster" {
   count = "${length(split(",", var.aws_availability_zones))}"
 
 }
+
+
+resource "aws_internet_gateway" "default" {
+  vpc_id = "${aws_vpc.app_cluster.id}"
+
+  tags {
+    Name = "${var.environment}_internet_gateway"
+    Environment = "${var.environment}"
+  }
+
+}
+
+resource "aws_route" "internet_access" {
+  route_table_id         = "${aws_vpc.app_cluster.main_route_table_id}"
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = "${aws_internet_gateway.default.id}"
+}
