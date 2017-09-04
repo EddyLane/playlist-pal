@@ -57,3 +57,18 @@ variable "aws_region" {
   type = "string"
   default = "eu-west-1"
 }
+
+variable "rds_size" {
+  type = "string"
+  default = "db.t2.micro"
+}
+
+variable "rds_backup_retention_period" {
+  type = "string"
+  default = 7
+}
+
+variable "rds_encryption" {
+  type = "string"
+  default = false
+}

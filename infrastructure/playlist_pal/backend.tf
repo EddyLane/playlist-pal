@@ -9,21 +9,22 @@ resource "aws_ecs_service" "backend" {
   cluster = "${aws_ecs_cluster.app.id}"
   task_definition = "${aws_ecs_task_definition.backend.arn}"
   desired_count = 1
-  #iam_role = "${aws_iam_role.ecs_service.arn}"
+  iam_role = "${aws_iam_role.ecs_service.arn}"
 
   placement_strategy {
     type  = "spread"
     field = "attribute:ecs.availability-zone"
   }
 
-  //  load_balancer {
-  //    target_group_arn = "${aws_alb_target_group.backend.id}"
-  //    container_name   = "playlist_pal_backend_${var.environment}"
-  //    container_port   = "80"
-  //  }
+  load_balancer {
+    target_group_arn = "${aws_alb_target_group.backend.id}"
+    container_name   = "playlist_pal_backend_${var.environment}"
+    container_port   = "4000"
+  }
 
   depends_on = [
-    "aws_iam_role_policy.ecs_service"
+    "aws_iam_role_policy.ecs_service",
+    "aws_alb_listener.backend",
   ]
 
 }
@@ -37,7 +38,7 @@ data "template_file" "backend" {
     backend_version = "${var.backend_container_version}"
     api_url = "${var.api_url}"
     environment = "${var.environment}"
-    postgres_host = "${var.domain}"
+    postgres_host = "${aws_db_instance.postgres.address}"
     postgres_user = "${var.postgres_user}"
     postgres_db = "${var.postgres_db}"
     postgres_password = "${var.postgres_password}"

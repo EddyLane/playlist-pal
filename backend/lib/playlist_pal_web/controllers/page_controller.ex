@@ -4,7 +4,9 @@ defmodule PlaylistPalWeb.PageController do
   import Guardian.Plug
 
   def app(conn, _params) do
-    render conn, "app.html"
+    conn
+    |> put_resp_content_type("text/plain")
+    |> send_resp(200, "Health check OK")
   end
 
 end
