@@ -36,7 +36,8 @@ defmodule PlaylistPal.Mixfile do
         :cors_plug,
         :guardian,
         :slugger,
-        :libcluster
+        :libcluster,
+        :httpotion
       ]
     ]
   end
@@ -64,6 +65,7 @@ defmodule PlaylistPal.Mixfile do
       {:ecto_autoslug_field, "~> 0.2"},
       {:cors_plug, "~> 1.2"},
       {:libcluster, "~> 2.1"},
+      {:httpotion, "~> 3.0.2"},
       {:distillery, "~> 1.4", runtime: false}
     ]
   end

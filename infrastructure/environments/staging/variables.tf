@@ -14,3 +14,7 @@ variable "secret_key_base" {
 variable "postgres_password" {
   type = "string"
 }
+
+variable "node_cookie" {
+  type = "string"
+}

@@ -53,4 +53,50 @@ defmodule PlaylistPal.ReleaseTasks do
 
   defp migrations_path, do: Path.join([priv_dir(), "repo", "migrations"])
 
+
+#  @spec aws_ecs_dns() :: {}
+#  def aws_ecs_dns do
+#    IO.puts "Checking for services on AWS ECS using DNS service discovery..."
+#    if System.get_env("ECS_DNS_POSTGRES") do
+#      postgres_dns_address = to_charlist System.get_env("ECS_DNS_POSTGRES")
+#      IO.puts "Looking for: #{postgres_dns_address}"
+#
+#      :timer.sleep(2000)
+#
+#      res = :inet_res.lookup(postgres_dns_address, :in, :srv)
+#
+#      if length(res) > 0 do
+#        dns_data = List.first(res)
+#        db_port = elem(dns_data, 2)
+#        db_hostname = elem(dns_data, 3)
+#
+#        IO.puts "Found #{postgres_dns_address} at #{db_hostname}:#{db_port} "
+#
+#        {:ok, env_file} = File.open "db_env", [:write]
+#        IO.binwrite env_file, "export POSTGRES_HOST=#{to_string(db_hostname)}\n"
+#        IO.binwrite env_file, "export POSTGRES_PORT=#{to_string(db_port)}\n"
+#      end
+#    end
+#
+#    :init.stop()
+#  end
+
+  @spec aws_cluster() :: {}
+  def aws_cluster do
+    {:ok, env_file} = File.open "cluster_env", [:write]
+    rand_bytes = :crypto.strong_rand_bytes(16)
+    encoded_bytes = Base.url_encode64(rand_bytes)
+    container_name = binary_part(encoded_bytes, 0, 16)
+
+    IO.binwrite env_file, "export VM_NAME=#{to_string(container_name)}\n"
+
+    Application.ensure_all_started(:httpotion)
+    response = HTTPotion.get "http://169.254.169.254/latest/meta-data/local-ipv4"
+    IO.puts response.status_code
+    IO.puts String.trim(response.body)
+    IO.puts "\n> Generated unique node name #{container_name}@#{response.body}\n"
+    IO.binwrite env_file, "export VM_IP=#{to_string(String.trim(response.body))}\n"
+    :init.stop()
+  end
+
 end

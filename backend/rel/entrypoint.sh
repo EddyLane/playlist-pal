@@ -2,14 +2,21 @@
 
 set -e
 
-if [ -z ${ECS_DNS_POSTGRES+x} ]; then
+if [ -z ${ECS_CLUSTERING+x} ]; then
+
   export VM_NAME=playlist_pal
   echo "Setting VM_IP"
   export VM_IP=$(hostname -i)
   echo "Set VM_IP as ${VM_IP}"
+
 else
+
   echo "On AWS ECS"
-  echo "NOT SUPPORTED YET. SET ME UP IN entrypoint.sh"
+  #/opt/app/bin/playlist_pal command Elixir.PlaylistPal.ReleaseTasks aws_ecs_dns
+  #source db_env
+  /opt/app/bin/playlist_pal command Elixir.PlaylistPal.ReleaseTasks aws_cluster
+  source cluster_env
+
 fi
 
 echo "Waiting for database to become available"

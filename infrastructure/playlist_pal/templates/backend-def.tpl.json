@@ -61,6 +61,14 @@
       {
         "Name": "HOST",
         "Value": "${domain}"
+      },
+      {
+        "Name": "NODE_COOKIE",
+        "Value": "${node_cookie}"
+      },
+      {
+        "Name": "ECS_CLUSTERING",
+        "Value": "TRUE"
       }
     ]
   }

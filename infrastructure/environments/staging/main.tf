@@ -23,5 +23,6 @@ module "main" {
   secret_key_base = "${var.secret_key_base}"
   guardian_secret_key = "${var.guardian_secret_key}"
   postgres_password = "${var.postgres_password}"
+  node_cookie = "${var.node_cookie}"
 
 }

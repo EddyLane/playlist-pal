@@ -2,6 +2,10 @@ variable "environment" {
   type = "string"
 }
 
+variable "node_cookie" {
+  type = "string"
+}
+
 variable "frontend_container_version" {
   type = "string"
   default = "latest"
