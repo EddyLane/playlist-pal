@@ -50,5 +50,6 @@ release :playlist_pal do
     :runtime_tools
   ]
   set post_start_hook: "rel/hooks/post_start"
+  set vm_args: "vm.args"
 end
 

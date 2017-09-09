@@ -1,6 +1,5 @@
 resource "aws_iam_role" "ecs_service" {
   name = "playlist-pal.${var.environment}.ecs_role"
-
   assume_role_policy = <<EOF
 {
   "Version": "2008-10-17",
@@ -42,7 +41,24 @@ resource "aws_iam_role_policy" "ecs_service" {
         "elasticloadbalancing:DeregisterTargets",
         "elasticloadbalancing:Describe*",
         "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
-        "elasticloadbalancing:RegisterTargets"
+        "elasticloadbalancing:RegisterTargets",
+        "ecs:CreateCluster",
+        "ecs:DeregisterContainerInstance",
+        "ecs:DiscoverPollEndpoint",
+        "ecs:Poll",
+        "ecs:RegisterContainerInstance",
+        "ecs:StartTelemetrySession",
+        "ecs:Submit*",
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "autoscaling:DescribeAutoScalingInstances",
+        "ecs:ListServices",
+        "ecs:DescribeTasks",
+        "ecs:DescribeServices"
       ],
       "Resource": "*"
     }

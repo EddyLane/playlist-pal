@@ -8,7 +8,7 @@ resource "aws_ecs_service" "frontend" {
   name = "frontend_${var.environment}"
   cluster = "${aws_ecs_cluster.app.id}"
   task_definition = "${aws_ecs_task_definition.frontend.arn}"
-  desired_count = 1
+  desired_count = "${length(var.aws_availability_zones)}"
   iam_role = "${aws_iam_role.ecs_service.arn}"
 
   placement_strategy {

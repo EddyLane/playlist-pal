@@ -61,7 +61,7 @@ resource "aws_db_instance" "postgres" {
   maintenance_window = "Sun:00:10-Sun:03:00"
   backup_window = "23:00-00:00"
   backup_retention_period = "${var.rds_backup_retention_period}"
-  port = 5432
+  port = "${var.postgres_port}"
   publicly_accessible = true
   apply_immediately = true
   skip_final_snapshot = true
@@ -94,7 +94,7 @@ resource "aws_security_group" "db" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/24"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
 

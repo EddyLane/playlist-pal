@@ -10,17 +10,29 @@ resource "aws_vpc" "app_cluster" {
 
 }
 
-# Create a subnet to launch our instances into (AZ 1)
 resource "aws_subnet" "app_cluster" {
   vpc_id                  = "${aws_vpc.app_cluster.id}"
-  cidr_block              = "10.0.${count.index + 1}.0/24"
+  cidr_block        = "${cidrsubnet(aws_vpc.app_cluster.cidr_block, 8, count.index)}"
+
   map_public_ip_on_launch = true
 
-  availability_zone = "${element(split(",", var.aws_availability_zones), count.index)}"
-  count = "${length(split(",", var.aws_availability_zones))}"
-
+  availability_zone = "${element(var.aws_availability_zones, count.index)}"
+  count = "${length(var.aws_availability_zones)}"
 }
-
+//
+//resource "aws_subnet" "app" {
+//
+//  count             = "${length(split(",", var.aws_availability_zones))}"
+//  cidr_block        = "${cidrsubnet(aws_vpc.app.cidr_block, 8, count.index)}"
+//  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+//  vpc_id            = "${aws_vpc.app.id}"
+//
+//  tags {
+//    cluster = "${var.cluster_name}"
+//    Name    = "${var.cluster_name}.ecs.${count.index}"
+//  }
+//
+//}
 
 resource "aws_internet_gateway" "default" {
   vpc_id = "${aws_vpc.app_cluster.id}"
@@ -32,8 +44,31 @@ resource "aws_internet_gateway" "default" {
 
 }
 
-resource "aws_route" "internet_access" {
-  route_table_id         = "${aws_vpc.app_cluster.main_route_table_id}"
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = "${aws_internet_gateway.default.id}"
+
+resource "aws_route_table_association" "a" {
+  count = "${length(var.aws_availability_zones)}"
+  subnet_id      = "${element(aws_subnet.app_cluster.*.id, count.index)}"
+  route_table_id = "${aws_route_table.app.id}"
 }
+
+
+resource "aws_route_table" "app" {
+  vpc_id = "${aws_vpc.app_cluster.id}"
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "${aws_internet_gateway.default.id}"
+  }
+
+  tags {
+    cluster = "${aws_ecs_cluster.app.name}"
+    Name    = "${aws_ecs_cluster.app.name}.ecs"
+  }
+}
+
+//
+//resource "aws_route" "internet_access" {
+//  route_table_id         = "${aws_vpc.app_cluster.main_route_table_id}"
+//  destination_cidr_block = "0.0.0.0/0"
+//  gateway_id             = "${aws_internet_gateway.default.id}"
+//}

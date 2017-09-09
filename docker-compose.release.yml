@@ -16,20 +16,28 @@ services:
       - GUARDIAN_SECRET_KEY=playlist_pal_secret_key
       - SECRET_KEY_BASE=secret_key_base
       - HOST=playlist-pal.local
+      - VIRTUAL_HOST=api.playlist-pal.local
+      - VIRTUAL_PORT=4000
+      - NODE_COOKIE=playlist_pal
     links:
       - postgres
     depends_on:
       - postgres
-    ports:
-       - "4000:4000"
 
   nginx:
     image: eddylane/playlist_pal_frontend:release-0.0.1
     environment:
-      - API_URL=localhost:4000
+      - API_URL=api.playlist-pal.local
       - CONFIG_VARS=API_URL
+      - VIRTUAL_HOST=playlist-pal.local
+
+  proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
     ports:
-       - "80:80"
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
 
   postgres:
     image: postgres:9.5

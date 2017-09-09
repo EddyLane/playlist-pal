@@ -4,23 +4,31 @@ FROM erlang:slim
 EXPOSE 4000
 
 ## EPMD
-#EXPOSE 4369
-#EXPOSE 9100-9155
-#EXPOSE 45892/udp
+EXPOSE 4369
+EXPOSE 9100-9155
+EXPOSE 45892/udp
 
 ENV PORT=4000
 ENV MIX_ENV=prod
 ENV REPLACE_OS_VARS=true
 ENV SHELL=/bin/bash
 
-RUN apt-get clean && apt-get update \
-    && apt-get install locales
+#RUN apt-get clean && apt-get update \
+#    && apt-get install locales
 
-RUN locale-gen en_US.UTF-8
+#RUN locale-gen en_US.UTF-8
+
+#ENV LANG en_US.UTF-8
+#ENV LANGUAGE en_US:en
+#ENV LC_ALL en_US.UTF-8
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y locales
+
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+    dpkg-reconfigure --frontend=noninteractive locales && \
+    update-locale LANG=en_US.UTF-8
 
 ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
 
 RUN apt-get autoremove && rm -rf /var/lib/apt/lists/*
 
