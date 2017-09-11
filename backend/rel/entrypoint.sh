@@ -15,6 +15,10 @@ else
   #/opt/app/bin/playlist_pal command Elixir.PlaylistPal.ReleaseTasks aws_ecs_dns
   #source db_env
   /opt/app/bin/playlist_pal command Elixir.PlaylistPal.ReleaseTasks aws_cluster
+
+  echo "Cluster ENV"
+  cat cluster_env
+
   source cluster_env
 
 fi

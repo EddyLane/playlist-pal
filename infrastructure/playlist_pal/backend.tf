@@ -49,6 +49,7 @@ data "template_file" "backend" {
     cloudwatch_log_group = "${aws_cloudwatch_log_group.playlist_pal.arn}"
     cloudwatch_region    = "${var.aws_region}"
     node_cookie = "${var.node_cookie}"
+    weave_cidr = "${var.weave_cidr}"
   }
 
 }

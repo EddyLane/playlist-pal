@@ -46,3 +46,5 @@ RUN chmod +x /bin/wait-for-it.sh
 RUN chmod +x /opt/app/bin/playlist_pal
 
 ENTRYPOINT ["/opt/app/bin/entrypoint.sh"]
+
+CMD foreground

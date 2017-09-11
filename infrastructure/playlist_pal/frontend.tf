@@ -41,6 +41,7 @@ data "template_file" "frontend" {
 
     cloudwatch_log_group = "${aws_cloudwatch_log_group.playlist_pal.arn}"
     cloudwatch_region    = "${var.aws_region}"
+    weave_cidr           = "${var.weave_cidr}"
   }
 
 }

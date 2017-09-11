@@ -1,6 +1,8 @@
 resource "aws_vpc" "app_cluster" {
 
   cidr_block = "10.0.0.0/16"
+
+  enable_dns_support   = true
   enable_dns_hostnames = true
 
   tags {
@@ -19,20 +21,6 @@ resource "aws_subnet" "app_cluster" {
   availability_zone = "${element(var.aws_availability_zones, count.index)}"
   count = "${length(var.aws_availability_zones)}"
 }
-//
-//resource "aws_subnet" "app" {
-//
-//  count             = "${length(split(",", var.aws_availability_zones))}"
-//  cidr_block        = "${cidrsubnet(aws_vpc.app.cidr_block, 8, count.index)}"
-//  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
-//  vpc_id            = "${aws_vpc.app.id}"
-//
-//  tags {
-//    cluster = "${var.cluster_name}"
-//    Name    = "${var.cluster_name}.ecs.${count.index}"
-//  }
-//
-//}
 
 resource "aws_internet_gateway" "default" {
   vpc_id = "${aws_vpc.app_cluster.id}"

@@ -36,29 +36,14 @@ resource "aws_iam_role_policy" "ecs_service" {
     {
       "Effect": "Allow",
       "Action": [
-        "ec2:Describe*",
-        "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
-        "elasticloadbalancing:DeregisterTargets",
-        "elasticloadbalancing:Describe*",
-        "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
-        "elasticloadbalancing:RegisterTargets",
-        "ecs:CreateCluster",
-        "ecs:DeregisterContainerInstance",
-        "ecs:DiscoverPollEndpoint",
-        "ecs:Poll",
-        "ecs:RegisterContainerInstance",
-        "ecs:StartTelemetrySession",
-        "ecs:Submit*",
-        "ecr:GetAuthorizationToken",
-        "ecr:BatchCheckLayerAvailability",
-        "ecr:GetDownloadUrlForLayer",
-        "ecr:BatchGetImage",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "autoscaling:DescribeAutoScalingInstances",
-        "ecs:ListServices",
-        "ecs:DescribeTasks",
-        "ecs:DescribeServices"
+        "autoscaling:*",
+        "ec2:*",
+        "ecs:*",
+        "elasticloadbalancing:*",
+        "ecr:*",
+        "logs:*",
+        "route53:*",
+        "route53domains:*"
       ],
       "Resource": "*"
     }

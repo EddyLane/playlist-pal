@@ -20,6 +20,10 @@
     },
     "environment": [
       {
+        "Name": "WEAVE_CIDR",
+        "Value": "net:${weave_cidr}"
+      },
+      {
         "Name": "API_URL",
         "Value": "${api_url}"
       },

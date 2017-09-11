@@ -77,3 +77,8 @@ variable "rds_encryption" {
   type = "string"
   default = false
 }
+
+variable "weave_cidr" {
+  type = "string"
+  default = "10.32.101.0/24"
+}
