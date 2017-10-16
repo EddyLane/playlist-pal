@@ -20,10 +20,12 @@ services:
       - postgres
     depends_on:
       - postgres
+    env_file:
+      - ./secrets/secrets.env
 
   webpack:
     image: node:6
-    command: sh -c "npm rebuild node-sass; ./node_modules/.bin/webpack-dev-server --host 0.0.0.0 --port 80 --colors"
+    command: sh -c "npm rebuild node-sass; ./node_modules/.bin/webpack-dev-server --host 0.0.0.0 --port 80 --colors  --history-api-fallback"
     volumes:
       - ./frontend:/app
     ports:

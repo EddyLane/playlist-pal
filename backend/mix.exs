@@ -20,26 +20,8 @@ defmodule PlaylistPal.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {PlaylistPal, []},
-      applications: [
-        :phoenix,
-        :phoenix_pubsub,
-        :phoenix_html,
-        :cowboy,
-        :logger,
-        :gettext,
-        :phoenix_ecto,
-        :postgrex,
-        :comeonin,
-        :poison,
-        :ecto_autoslug_field,
-        :cors_plug,
-        :guardian,
-        :slugger,
-        :libcluster,
-        :httpotion
-      ]
-    ]
+      mod: {PlaylistPal.Application, []},
+      extra_applications: [:logger, :runtime_tools, :guardian]]
   end
 
   # Specifies which paths to compile per environment.
@@ -53,20 +35,26 @@ defmodule PlaylistPal.Mixfile do
     [
       {:phoenix, "~> 1.3.0"},
       {:phoenix_pubsub, "~> 1.0"},
-      {:phoenix_ecto, "~> 3.2.3"},
+      {:phoenix_ecto, "~> 3.2"},
       {:postgrex, ">= 0.0.0"},
-      {:phoenix_html, "~> 2.6"},
-      {:phoenix_live_reload, "~> 1.0.8", only: :dev},
+      {:phoenix_html, "~> 2.10"},
+      {:phoenix_live_reload, "~> 1.0", only: :dev},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
-      {:guardian, "~> 0.14.5"},
-      {:comeonin, "~> 2.0"},
-      {:poison, "~> 3.0"},
-      {:ecto_autoslug_field, "~> 0.2"},
+      {:guardian, "~> 1.0-beta"},
+      {:guardian_db, github: "ueberauth/guardian_db", branch: "master"},
+      {:poison, "~> 3.1"},
+      {:ecto_autoslug_field, "~> 0.3"},
       {:cors_plug, "~> 1.2"},
       {:libcluster, "~> 2.1"},
       {:httpotion, "~> 3.0.2"},
-      {:distillery, "~> 1.4", runtime: false}
+      {:spotify_ex, "~> 2.0.6"},
+      {:dogma, "~> 0.1", only: [:dev, :test]},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:distillery, "~> 1.4", runtime: false},
+      {:fs, "~> 2.12", override: true},
+      {:mix_test_watch, "~> 0.3", only: [:dev], runtime: false},
+      {:mock, "~> 0.2.0", only: :test}
     ]
   end
 
@@ -80,7 +68,6 @@ defmodule PlaylistPal.Mixfile do
     [
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      "test": ["ecto.create --quiet", "ecto.migrate", "test"]
     ]
   end
 end

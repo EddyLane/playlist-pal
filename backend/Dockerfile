@@ -1,4 +1,4 @@
-FROM elixir:1.4
+FROM elixir:latest
 
 # Install hex and rebar
 RUN mix local.hex --force && \

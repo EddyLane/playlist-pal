@@ -33,6 +33,16 @@ install_backend:
 	elixir:1.4 \
 	sh -c "mix local.hex --force; mix local.rebar --force; mix deps.get"
 
+update_backend:
+	@echo "Installling backend dependencies."
+
+	docker run --rm \
+	--volume ${CURDIR}/backend:/app \
+	--workdir /app \
+	elixir:1.4 \
+	sh -c "mix local.hex --force; mix local.rebar --force; mix deps.update --all"
+
+
 release: release_frontend release_backend
 	@echo "Built release."
 
@@ -87,16 +97,10 @@ release_backend: install_backend ecr_login
 	docker push ${BACKEND_REPOSITORY_URL}:${GIT_VERSION}
 	docker push ${BACKEND_REPOSITORY_URL}:latest
 
-terraform_init:
+test_backend_watch:
+	docker-compose -f ${CURDIR}/backend/docker-compose.test.yml up
 
-#	SECRET_FILE_LOCATION=${CURDIR}/infrastructure/environments/${ENV}/secret.tfvars
-#
-#	@echo "${SECRET_FILE_LOCATION}"
-#
-#	if [ ! -f ${SECRET_FILE_LOCATION} ] ; \
-#    then \
-#         $(error Cannot find secret variable file in environment dir); \
-#    fi;
+terraform_init:
 
 	docker run --rm \
 	--volume ${CURDIR}/infrastructure:/app \

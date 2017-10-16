@@ -28,7 +28,8 @@ services:
     image: eddylane/playlist_pal_frontend:release-0.0.1
     environment:
       - API_URL=api.playlist-pal.local
-      - CONFIG_VARS=API_URL
+      - SPOTIFY_CLIENT_ID=763c0d3fefcf4847ad43a8afe32fefcd
+      - CONFIG_VARS=API_URL,SPOTIFY_CLIENT_ID
       - VIRTUAL_HOST=playlist-pal.local
 
   proxy:

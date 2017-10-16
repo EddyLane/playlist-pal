@@ -9,8 +9,7 @@ import Data.AuthToken as AuthToken exposing (AuthToken)
 
 type alias User =
     { username : Username
-    , name :
-        String
+    , name : String
         --    , token : AuthToken
     }
 

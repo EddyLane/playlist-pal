@@ -8,7 +8,7 @@ defmodule PlaylistPalWeb.FallbackController do
 
   def call(conn, {:error, %Ecto.Changeset{} = changeset}) do
     conn
-    |> put_status(:unprocessable_entity)
+    |> put_status(:bad_request)
     |> render(PlaylistPalWeb.ChangesetView, "error.json", changeset: changeset)
   end
 
@@ -17,4 +17,5 @@ defmodule PlaylistPalWeb.FallbackController do
     |> put_status(:not_found)
     |> render(PlaylistPalWeb.ErrorView, :"404")
   end
+
 end

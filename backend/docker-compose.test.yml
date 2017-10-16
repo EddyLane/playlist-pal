@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+
+  elixir_test_watch:
+    build: .
+    command: sh -c "mix compile; mix ecto.setup; mix test.watch"
+    environment:
+      - MIX_ENV=dev
+      - PORT=4001
+      - POSTGRES_HOST=postgres_test
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=playlist_pal_test
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - .:/app
+    ports:
+      - 4000
+    links:
+      - postgres_test
+    depends_on:
+      - postgres_test
+    env_file:
+      - ../secrets/secrets.env
+
+  postgres_test:
+    image: postgres:9.5
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=playlist_pal_test
+    ports:
+      - 5432

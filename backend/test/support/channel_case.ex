@@ -1,4 +1,4 @@
-defmodule PlaylistPal.ChannelCase do
+defmodule PlaylistPalWeb.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.

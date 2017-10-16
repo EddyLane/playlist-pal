@@ -25,7 +25,8 @@ const commonConfig = {
         })
     ],
     devServer: {
-        stats: 'errors-only'
+        stats: 'errors-only',
+        historyApiFallback: true
     },
     module: {
         rules: [

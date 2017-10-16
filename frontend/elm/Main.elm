@@ -23,7 +23,8 @@ import Channels.UserSocket exposing (initPhxSocket)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Phoenix.Socket as Socket
-
+import OAuth
+import OAuth.Implicit
 
 type Page
     = Blank
@@ -61,7 +62,6 @@ pageToActivePage page =
 
         _ ->
             Page.Other
-
 
 
 -- MODEL --
@@ -283,7 +283,7 @@ type Msg
     | NoOp
     | PhoenixMsg (Phoenix.Socket.Msg Msg)
     | HomeMsg Home.Msg
-
+    | Authorize
 
 destroyPage : Maybe Route -> Model -> ( Model, Cmd Msg )
 destroyPage maybeRoute model =
@@ -329,7 +329,9 @@ setRoute maybeRoute model =
     in
         case maybeRoute of
             Just (Route.Home) ->
-                { model | pageState = Loaded (Home Home.initialModel) } => Cmd.none
+                { model | pageState = Loaded (Home Home.initialModel) } =>
+                    Cmd.none
+
 
             Just (Route.Login) ->
                 { model | pageState = Loaded (Login Login.initialModel) } => Cmd.none
@@ -416,6 +418,20 @@ updatePage page msg model =
             pageErrored model
     in
         case ( msg, page ) of
+
+            ( Authorize, _ ) ->
+                model
+                    ! [ OAuth.Implicit.authorize
+                            { clientId = "clientId"
+                            , redirectUri = "redirectUri"
+                            , responseType = OAuth.Token -- Use the OAuth.Token response type
+                            , scope = [ "whatever" ]
+                            , state = Nothing
+                            , url = "authorizationEndpoint"
+                            }
+                      ]
+
+
             ( DestroyingPage msg, _ ) ->
                 model => msg
 

@@ -1,7 +1,7 @@
 module Route exposing (Route(..), href, modifyUrl, fromLocation)
 
 import Data.Playlist as Playlist
-import UrlParser as Url exposing (parseHash, s, (</>), string, oneOf, Parser)
+import UrlParser as Url exposing (parsePath, s, (</>), string, oneOf, Parser)
 import Navigation exposing (Location)
 import Html exposing (Attribute)
 import Html.Attributes as Attr
@@ -56,8 +56,7 @@ routeToString page =
                     [ "playlist", Playlist.slugToString slug ]
 
     in
-        "#/" ++ (String.join "/" pieces)
-
+        "/" ++ (String.join "/" pieces)
 
 
 -- PUBLIC HELPERS --
@@ -75,7 +74,11 @@ modifyUrl =
 
 fromLocation : Location -> Maybe Route
 fromLocation location =
-    if String.isEmpty location.hash then
-        Just Home
-    else
-        parseHash route location
+    let
+        debugLocation =
+            Debug.log "location" location
+    in
+        if String.isEmpty debugLocation.pathname then
+            Just Home
+        else
+            parsePath route location

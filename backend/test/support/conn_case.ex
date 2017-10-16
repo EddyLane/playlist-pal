@@ -1,4 +1,4 @@
-defmodule PlaylistPal.ConnCase do
+defmodule PlaylistPalWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -28,7 +28,7 @@ defmodule PlaylistPal.ConnCase do
       import PlaylistPalWeb.Router.Helpers
 
       # The default endpoint for testing
-      @endpoint PlaylistPal.Endpoint
+      @endpoint PlaylistPalWeb.Endpoint
     end
   end
 

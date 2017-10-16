@@ -38,3 +38,6 @@ config :playlist_pal, PlaylistPal.Repo,
   hostname: System.get_env("POSTGRES_HOST"),
   database: System.get_env("POSTGRES_DB"),
   pool_size: 10
+
+config :mix_test_watch,
+  clear: true
