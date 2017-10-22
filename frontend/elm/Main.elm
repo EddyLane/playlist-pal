@@ -73,8 +73,11 @@ init val location =
         ( headerModel, headerCmd ) =
             Header.initialState
 
+        route =
+            Route.fromLocation location
+
         ( pageModel, pageCmd ) =
-            setRoute (Route.fromLocation location)
+            setRoute route
                 { pageState = Loaded initialPage
                 , session = sessionModel
                 , headerState = headerModel
@@ -82,10 +85,22 @@ init val location =
                 , config = configModel
                 }
 
+        redirectToAuth =
+            case ( sessionModel.token, route ) of
+                ( Just _, _ ) ->
+                    Cmd.none
+
+                ( Nothing, Just (Route.Authenticate _) ) ->
+                    Cmd.none
+
+                ( _, _ ) ->
+                    Navigation.load "http://localhost:4000/v1/sign-up"
+
         commands =
             Cmd.batch
                 [ pageCmd
                 , Cmd.map HeaderMsg headerCmd
+                , redirectToAuth
                 ]
     in
         ( pageModel, commands )

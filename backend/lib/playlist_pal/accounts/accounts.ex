@@ -88,8 +88,9 @@ defmodule PlaylistPal.Accounts do
   def get_spotify_profile(user, attempt \\ 1)
 
   def get_spotify_profile(%User{} = user, attempt) when attempt <= 2 do
-    tokens = user.spotify_tokens
-    creds = Credentials.new(tokens.access_token, tokens.refresh_token)
+
+    %{:access_token => access_token, :refresh_token => refresh_token} = user.spotify_tokens
+    creds = Credentials.new(access_token, refresh_token)
     profile = Profile.me(creds)
 
     case profile do
