@@ -70,8 +70,11 @@ init val location =
         phxSocket =
             initPhxSocket configModel.apiUrl
 
-        ( headerModel, headerCmd ) =
+        ( headerModel, headerMsg ) =
             Header.initialState
+
+        headerCmd =
+            Cmd.map HeaderMsg headerMsg
 
         route =
             Route.fromLocation location
@@ -97,13 +100,12 @@ init val location =
                     Navigation.load "http://localhost:4000/v1/sign-up"
 
         commands =
-            Cmd.batch
-                [ pageCmd
-                , Cmd.map HeaderMsg headerCmd
-                , redirectToAuth
-                ]
+            if redirectToAuth == Cmd.none then
+                Cmd.batch [ pageCmd, headerCmd ]
+            else
+                redirectToAuth
     in
-        ( pageModel, commands )
+        pageModel => commands
 
 
 decodeSessionFromJson : Value -> Maybe Session

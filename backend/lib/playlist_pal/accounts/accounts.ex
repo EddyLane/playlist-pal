@@ -40,19 +40,22 @@ defmodule PlaylistPal.Accounts do
       iex> get_user_by_spotify_id("edlane")
       %User{}
 
-      iex> get_user_by_spotify_id("12415)
+      iex> get_user_by_spotify_id("12415")
       ** nil
 
   """
   def get_user_by_spotify_id(spotify_id) do
-    Repo.one(
+    user = Repo.one(
       from(
         u in User,
         where: u.spotify_id == ^spotify_id,
         preload: :spotify_tokens
       )
     )
+
+    add_spotify_profile_fields_to_user(user)
   end
+
 
   @doc """
   Updates a users access token.
@@ -89,8 +92,8 @@ defmodule PlaylistPal.Accounts do
 
   def get_spotify_profile(%User{} = user, attempt) when attempt <= 2 do
 
-    %{:access_token => access_token, :refresh_token => refresh_token} = user.spotify_tokens
-    creds = Credentials.new(access_token, refresh_token)
+    tokens = user.spotify_tokens
+    creds = Credentials.new(tokens.access_token, tokens.refresh_token)
     profile = Profile.me(creds)
 
     case profile do
@@ -112,10 +115,15 @@ defmodule PlaylistPal.Accounts do
     raise "Failed after second retry attempt"
   end
 
+  #######################
+  ## Private functions ##
+  #######################
+
   defp create_user(attrs \\ %{}) do
     %User{}
     |> User.changeset(attrs)
     |> Repo.insert()
+    |> add_spotify_profile_fields_to_user()
   end
 
   defp user_params(%Profile{} = profile, %Credentials{} = credentials) do
@@ -127,5 +135,18 @@ defmodule PlaylistPal.Accounts do
       }
     }
   end
+
+
+  defp add_spotify_profile_fields_to_user(%User{} = user) do
+    %{:images => images} = get_spotify_profile(user)
+
+    user
+    |> add_spotify_image_to_user(images)
+  end
+
+  defp add_spotify_profile_fields_to_user(nil), do: nil
+
+  defp add_spotify_image_to_user(%User{} = user, [image|_]), do: %{ user | image: image["url"] }
+  defp add_spotify_image_to_user(%User{} = user, []), do: user
 
 end

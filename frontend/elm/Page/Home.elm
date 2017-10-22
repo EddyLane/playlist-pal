@@ -26,27 +26,28 @@ type alias Model =
 -- VIEW --
 
 
+userProfileImage : Session -> Html Msg
+userProfileImage session =
+    case Maybe.map .image session.user of
+        Just (Just imageSrc) ->
+            img [ src imageSrc ] []
+
+        _ ->
+            text ""
+
+
 view : Session -> Model -> Html Msg
 view session model =
-    let
-        image =
-            case session.user of
-                Just user ->
-                    img [ src user.image ] []
-
-                Nothing ->
-                    text ""
-    in
-        Grid.container []
-            [ Grid.row []
-                [ Grid.col []
-                    [ div [ class "jumbotron" ]
-                        [ h1 [ class "display-3" ] [ text "Homepage" ]
-                        , image
-                        ]
+    Grid.container []
+        [ Grid.row []
+            [ Grid.col []
+                [ div [ class "jumbotron" ]
+                    [ h1 [ class "display-3" ] [ text "Homepage" ]
+                    , userProfileImage session
                     ]
                 ]
             ]
+        ]
 
 
 type Msg

@@ -9,7 +9,7 @@ import Data.AuthToken as AuthToken exposing (AuthToken)
 
 type alias User =
     { username : Username
-    , image : String
+    , image : Maybe String
     }
 
 
@@ -18,15 +18,24 @@ decoder =
     Decode.map2
         User
         (Decode.at [ "spotify_id" ] usernameDecoder)
-        (Decode.at [ "image" ] Decode.string)
+        (Decode.at [ "image" ] (Decode.nullable Decode.string))
 
 
 encode : User -> Value
 encode user =
-    Encode.object
-        [ "spotify_id" => encodeUsername user.username
-        , "image" => Encode.string user.image
-        ]
+    let
+        image =
+            case user.image of
+                Just img ->
+                    Encode.string img
+
+                Nothing ->
+                    Encode.null
+    in
+        Encode.object
+            [ "spotify_id" => encodeUsername user.username
+            , "image" => image
+            ]
 
 
 
