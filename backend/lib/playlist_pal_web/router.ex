@@ -23,8 +23,13 @@ defmodule PlaylistPalWeb.Router do
 
     get "/sign-up", SignUpController, :sign_up
     get "/authenticate", SignUpController, :authenticate
-    get "/login-token", SignUpController, :login_token
 
+  end
+
+  scope "/v1", PlaylistPalWeb do
+    pipe_through [:api]
+
+    post "/login-token", SignUpController, :login_token
   end
 
 

@@ -5,7 +5,7 @@ defmodule PlaylistPalWeb.Guardian do
   alias GuardianDb
 
   def subject_for_token(resource, _claims) do
-    {:ok, to_string(resource.id)}
+    {:ok, to_string(resource.spotify_id)}
   end
 
   def subject_for_token(_, _) do
@@ -13,11 +13,8 @@ defmodule PlaylistPalWeb.Guardian do
   end
 
   def resource_from_claims(claims) do
-    %{"sub" => user_id} = claims
-
-    {user_id, _} = user_id |> Integer.parse()
-
-    {:ok, Accounts.get_user!(user_id)}
+    %{"sub" => spotify_id} = claims
+    {:ok, Accounts.get_user_by_spotify_id(spotify_id) }
   end
 
   def resource_from_claims(_claims) do

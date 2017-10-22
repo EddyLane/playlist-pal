@@ -3,19 +3,25 @@ defmodule PlaylistPal.User do
   use Ecto.Schema
   import Ecto.Changeset
   alias PlaylistPal.User
+  alias PlaylistPal.SpotifyTokens
 
   schema "users" do
     field :spotify_id, :string
+    field :image, :string, virtual: true
 
-    has_many(:spotify_tokens, PlaylistPal.SpotifyTokens)
+    has_one :spotify_tokens, SpotifyTokens
 
     timestamps()
   end
 
+  @required_fields ~w(spotify_id)a
+
   def changeset(%User{} = user, attrs) do
     user
-    |> cast(attrs, [:spotify_id])
-    |> validate_required([:spotify_id])
+    |> cast(attrs, @required_fields)
+    |> validate_required(@required_fields)
+    |> unique_constraint(:spotify_id)
+    |> cast_assoc(:spotify_tokens, required: true)
   end
 
 end

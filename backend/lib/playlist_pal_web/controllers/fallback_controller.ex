@@ -18,4 +18,10 @@ defmodule PlaylistPalWeb.FallbackController do
     |> render(PlaylistPalWeb.ErrorView, :"404")
   end
 
+  def call(conn, {:error, :token_not_found}) do
+    conn
+    |> put_status(:not_found)
+    |> render(PlaylistPalWeb.ErrorView, :"404")
+  end
+
 end

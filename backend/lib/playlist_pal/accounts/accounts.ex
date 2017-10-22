@@ -9,61 +9,122 @@ defmodule PlaylistPal.Accounts do
   alias PlaylistPal.User
   alias PlaylistPal.SpotifyTokens
 
+  alias Spotify.Profile
+  alias Spotify.Credentials
+  alias Spotify.Authentication
+
   @doc """
-  Creates a user.
+  Creates a new user or returns an existing user if already exists
+
   ## Examples
-      iex> create_user(%{field: value})
+
+      iex> get_or_create_user(spotify_profile, spotify_credentials)
       {:ok, %User{}}
-      iex> create_user(%{field: bad_value})
+
+      iex> get_or_create_user(%{field: bad_value}, nil)
       {:error, %Ecto.Changeset{}}
+
   """
-  def create_user(attrs \\ %{}) do
+  def get_or_create_user(%Profile{} = profile, %Credentials{} = credentials) do
+    case get_user_by_spotify_id(profile.id) do
+      nil -> user_params(profile, credentials) |> create_user()
+      user -> {:ok, user}
+    end
+  end
+
+  @doc """
+  Gets a single user.
+
+  ## Examples
+
+      iex> get_user_by_spotify_id("edlane")
+      %User{}
+
+      iex> get_user_by_spotify_id("12415)
+      ** nil
+
+  """
+  def get_user_by_spotify_id(spotify_id) do
+    Repo.one(
+      from(
+        u in User,
+        where: u.spotify_id == ^spotify_id,
+        preload: :spotify_tokens
+      )
+    )
+  end
+
+  @doc """
+  Updates a users access token.
+
+  ## Examples
+
+      iex> update_user_spotify_access_token(user, "new_token")
+      {:ok, %User{}}
+
+      iex> update_user_spotify_access_token(user, nil)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_spotify_access_token(%User{} = user, new_access_token) do
+    new_tokens =
+      user.spotify_tokens
+      |> SpotifyTokens.changeset(%{access_token: new_access_token})
+      |> Repo.update()
+
+    %{ user | spotify_tokens: new_tokens }
+  end
+
+
+  @doc """
+  Get a spotify profile for a given user. If spotify credentials are expired will attempt to get a new access key
+
+  ## Examples
+
+      iex> get_spotify_profile(user)
+      %Profile{}
+
+  """
+  def get_spotify_profile(user, attempt \\ 1)
+
+  def get_spotify_profile(%User{} = user, attempt) when attempt <= 2 do
+    tokens = user.spotify_tokens
+    creds = Credentials.new(tokens.access_token, tokens.refresh_token)
+    profile = Profile.me(creds)
+
+    case profile do
+
+      {:ok, %{"error" => %{"status" => 401}}} ->
+        with {:ok, new_creds } <- Authentication.refresh(creds) do
+          user
+          |> update_user_spotify_access_token(new_creds.access_token)
+          |> get_spotify_profile(attempt + 1)
+        end
+
+      {:ok, profile } ->
+        profile
+
+    end
+  end
+
+  def get_spotify_profile(_, attempt) when attempt > 2 do
+    raise "Failed after second retry attempt"
+  end
+
+  defp create_user(attrs \\ %{}) do
     %User{}
     |> User.changeset(attrs)
     |> Repo.insert()
   end
 
-  @doc """
-  Creates a spotify token pair.
-  ## Examples
-      iex> create_spotify_tokens(user, %{field: value})
-      {:ok, %SpotifyTokens{}}
-      iex> create_spotify_tokens(user, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-  """
-  def create_spotify_tokens(%User{} = user, %Spotify.Credentials{} = creds) do
-
-    %SpotifyTokens{}
-    |> SpotifyTokens.changeset(%{
-       :access_token => creds.access_token,
-       :refresh_token => creds.refresh_token,
-       :user_id => user.id
-    })
-    |> Repo.insert()
-
+  defp user_params(%Profile{} = profile, %Credentials{} = credentials) do
+    %{
+      spotify_id: profile.id,
+      spotify_tokens: %{
+        access_token: credentials.access_token,
+        refresh_token: credentials.refresh_token
+      }
+    }
   end
-
-  @doc """
-  Gets a single user.
-  ## Examples
-      iex> get_user_by_spotify_id(1)
-      %User{}
-      iex> get_user_by_spotify_id(9999)
-      ** nil
-  """
-  def get_user_by_spotify_id(spotify_id) do
-    Repo.get_by(User, spotify_id: spotify_id)
-  end
-
-  @doc """
-  Gets a single user.
-  Raises `Ecto.NoResultsError` if the User does not exist.
-  ## Examples
-      iex> get_user!(1)
-      %User{}
-      iex> get_user!(9999)
-      ** (Ecto.NoResultsError)
-  """
-  def get_user!(id), do: Repo.get!(User, id)
 
 end

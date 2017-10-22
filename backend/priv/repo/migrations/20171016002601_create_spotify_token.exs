@@ -2,6 +2,7 @@ defmodule PlaylistPal.Repo.Migrations.CreateSpotifyToken do
   use Ecto.Migration
 
   def change do
+
     create table(:spotify_tokens) do
       add :access_token, :string
       add :refresh_token, :string
@@ -9,8 +10,6 @@ defmodule PlaylistPal.Repo.Migrations.CreateSpotifyToken do
 
       timestamps()
     end
-
-    create index(:spotify_tokens, [:user_id])
 
   end
 end

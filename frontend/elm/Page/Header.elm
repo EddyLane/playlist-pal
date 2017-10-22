@@ -60,23 +60,11 @@ viewHeader model user isLoading page =
 
 navbarItems : Maybe User -> ActivePage -> List (Navbar.Item msg)
 navbarItems user page =
-    [ navbarLink (page == Page.Home) Route.Home [ text "Home" ] ] ++ viewSignIn page user
+    case user of
+        Just user -> [ navbarLink (page == Page.Home) Route.Home [ text "Home" ] ]
+        Nothing -> []
 
 
 navbarLink : Bool -> Route -> List (Html msg) -> Navbar.Item msg
 navbarLink isActive route linkContent =
     Navbar.itemLink [ classList [ ( "active", isActive ) ], Route.href route ] linkContent
-
-
-viewSignIn : ActivePage -> Maybe User -> List (Navbar.Item msg)
-viewSignIn page user =
-    case user of
-        Nothing ->
-            [ navbarLink (page == Login) Route.Login [ text "Sign in" ]
-            , navbarLink (page == Register) Route.Register [ text "Sign up" ]
-            ]
-
-        Just user ->
-            [ navbarLink False Route.Logout [ text "Sign out" ]
-            , navbarLink (page == Page.Playlists) Route.Playlists [ text "Playlists" ]
-            ]

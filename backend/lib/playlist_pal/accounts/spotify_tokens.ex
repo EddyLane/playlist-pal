@@ -9,15 +9,18 @@ defmodule PlaylistPal.SpotifyTokens do
     field :access_token, :string
     field :refresh_token, :string
 
-    belongs_to(:user, User)
+    belongs_to :user, User
 
     timestamps()
   end
 
-  def changeset(%SpotifyTokens{} = user, attrs) do
-    user
-    |> cast(attrs, [:access_token, :refresh_token, :user_id])
-    |> validate_required([:access_token, :user_id])
+  @required_fields ~w(access_token)a
+  @optional_fields ~w(refresh_token)a
+
+  def changeset(%SpotifyTokens{} = tokens, attrs) do
+    tokens
+    |> cast(attrs, @required_fields ++ @optional_fields)
+    |> validate_required(@required_fields)
   end
 
 end
