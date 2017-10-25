@@ -48,13 +48,14 @@ defmodule PlaylistPal.Mixfile do
       {:cors_plug, "~> 1.2"},
       {:libcluster, "~> 2.1"},
       {:httpotion, "~> 3.0.2"},
-      {:spotify_ex, "~> 2.0.6"},
+      {:spotify_ex, "~> 2.0.5"},
       {:dogma, "~> 0.1", only: [:dev, :test]},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
       {:distillery, "~> 1.4", runtime: false},
       {:fs, "~> 2.12", override: true},
       {:mix_test_watch, "~> 0.3", only: [:dev], runtime: false},
-      {:mock, "~> 0.2.0", only: :test}
+      {:mock, "~> 0.2.0", only: :test},
+      {:mox, "~> 0.1.0", only: :test}
     ]
   end
 

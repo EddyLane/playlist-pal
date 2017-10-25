@@ -17,3 +17,6 @@ config :playlist_pal, PlaylistPal.Repo,
   hostname: System.get_env("POSTGRES_HOST"),
   database: System.get_env("POSTGRES_DB"),
   pool: Ecto.Adapters.SQL.Sandbox
+
+# Configure environment specific things
+config :playlist_pal, :spotify_api, PlaylistPal.Spotify.Mock

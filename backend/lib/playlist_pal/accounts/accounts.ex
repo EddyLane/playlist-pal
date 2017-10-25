@@ -120,10 +120,12 @@ defmodule PlaylistPal.Accounts do
   #######################
 
   defp create_user(attrs \\ %{}) do
-    %User{}
-    |> User.changeset(attrs)
-    |> Repo.insert()
-    |> add_spotify_profile_fields_to_user()
+    {:ok, user} =
+      %User{}
+      |> User.changeset(attrs)
+      |> Repo.insert()
+
+      add_spotify_profile_fields_to_user(user)
   end
 
   defp user_params(%Profile{} = profile, %Credentials{} = credentials) do

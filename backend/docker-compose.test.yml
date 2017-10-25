@@ -1,10 +1,13 @@
 version: '3'
 
+volumes:
+  _build:
+
 services:
 
   elixir_test_watch:
     build: .
-    command: sh -c "mix compile; mix ecto.setup; mix test.watch"
+    command: sh -c "mix compile; mix ecto.setup; mix test.watch --stale"
     environment:
       - MIX_ENV=dev
       - PORT=4001
@@ -14,6 +17,7 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - .:/app
+      - _build:/app/_build
     ports:
       - 4000
     links:

@@ -41,3 +41,6 @@ config :playlist_pal, PlaylistPal.Repo,
 
 config :mix_test_watch,
   clear: true
+
+# Configure environment specific things
+config :playlist_pal, :spotify_api, PlaylistPal.Spotify.HTTPClient

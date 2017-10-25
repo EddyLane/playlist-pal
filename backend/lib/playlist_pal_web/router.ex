@@ -24,6 +24,7 @@ defmodule PlaylistPalWeb.Router do
     get "/sign-up", SignUpController, :sign_up
     get "/authenticate", SignUpController, :authenticate
 
+
   end
 
   scope "/v1", PlaylistPalWeb do
