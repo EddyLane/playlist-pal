@@ -1,6 +1,6 @@
 defmodule PlaylistPal.Spotify do
   @moduledoc false
 
-  @callback authenticate(%Plug.Conn{}, map()) :: {:ok, %Spotify.Credentials{}}
+  @callback authenticate(String.t) :: {:ok, %Spotify.Credentials{}}
 
 end

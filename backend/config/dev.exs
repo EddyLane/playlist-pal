@@ -40,7 +40,10 @@ config :playlist_pal, PlaylistPal.Repo,
   pool_size: 10
 
 config :mix_test_watch,
-  clear: true
+  clear: true,
+  tasks: [
+    "test"
+  ]
 
 # Configure environment specific things
 config :playlist_pal, :spotify_api, PlaylistPal.Spotify.HTTPClient

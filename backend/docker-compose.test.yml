@@ -7,7 +7,7 @@ services:
 
   elixir_test_watch:
     build: .
-    command: sh -c "mix compile; mix ecto.setup; mix test.watch --stale"
+    command: sh -c "mix compile; mix ecto.setup; mix test.watch"
     environment:
       - MIX_ENV=dev
       - PORT=4001

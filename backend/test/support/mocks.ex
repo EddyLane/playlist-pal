@@ -1,0 +1,1 @@
+Mox.defmock(PlaylistPal.Spotify.Mock , for: PlaylistPal.Spotify)

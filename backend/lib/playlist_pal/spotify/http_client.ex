@@ -5,10 +5,9 @@ defmodule PlaylistPal.Spotify.HTTPClient do
   alias Spotify.Credentials
   alias Spotify.Authentication
 
-  def authenticate(conn = %Plug.Conn{}, params) do
-    conn
-    |> Credentials.new()
-    |> Authentication.authenticate(params)
+  def authenticate(spotify_auth_code) do
+    %Credentials{}
+    |> Authentication.authenticate(%{"code" => spotify_auth_code})
   end
 
 end

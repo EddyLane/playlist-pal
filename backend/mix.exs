@@ -11,7 +11,8 @@ defmodule PlaylistPal.Mixfile do
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      dialyzer: [plt_add_deps: :transitive]
     ]
   end
 
@@ -55,7 +56,8 @@ defmodule PlaylistPal.Mixfile do
       {:fs, "~> 2.12", override: true},
       {:mix_test_watch, "~> 0.3", only: [:dev], runtime: false},
       {:mock, "~> 0.2.0", only: :test},
-      {:mox, "~> 0.1.0", only: :test}
+      {:mox, "~> 0.1.0", only: :test},
+      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false}
     ]
   end
 
