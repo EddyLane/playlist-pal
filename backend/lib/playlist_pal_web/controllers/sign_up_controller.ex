@@ -1,17 +1,18 @@
 defmodule PlaylistPalWeb.SignUpController do
 
-  #@spotify Application.get_env(:playlist_pal, :spotify_api)
+  @spotify Application.get_env(:playlist_pal, :spotify_api)
 
   use PlaylistPalWeb, :controller
 
   action_fallback PlaylistPalWeb.FallbackController
 
+  alias PlaylistPalWeb.ErrorView
 #  alias Spotify.Authentication
   alias Spotify.Authorization
-#  alias Spotify.Credentials
-#  alias Spotify.Profile
+  alias Spotify.Credentials
+  alias Spotify.Profile
 #
-#  alias PlaylistPal.Accounts
+  alias PlaylistPal.Accounts
 #  alias PlaylistPalWeb.Guardian
 #
   def sign_up(conn, _) do
@@ -19,12 +20,30 @@ defmodule PlaylistPalWeb.SignUpController do
   end
 
   def authenticate(conn, %{"code" => spotify_auth_code}) do
-    render(conn, PlaylistPalWeb.ErrorView.render("404.json", %{}))
+
+    @spotify.authenticate(spotify_auth_code)
+    |> handle_auth(conn)
+
+#    conn
+#    |> put_status(:bad_request)
+#    |> render(PlaylistPalWeb.ErrorView, "auth_failure.json")
+
   end
 
-  def authenticate(conn, _) do
-    render(conn, PlaylistPalWeb.ErrorView.render("404.json", %{}))
+  def authenticate(conn, _), do: conn |> put_status(:not_found) |> render(ErrorView, "404.json")
+
+  defp handle_auth({:ok, %Credentials{} = credentials}, conn) do
+
+
+    {:ok, profile} = @spotify.profile(credentials)
+
+    user= Accounts.get_or_create_user(profile, credentials)
+
+    json(conn, %{})
   end
+
+
+  defp handle_auth({:error, _ }, conn), do: conn |> put_status(:bad_request) |> render(ErrorView, "auth_failure.json")
 
 #  def authenticate(conn, params), do: render(conn, PlaylistPalWeb.ErrorView.render("404.json", params))
 

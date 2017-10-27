@@ -17,19 +17,19 @@ defmodule PlaylistPalWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
-
-  scope "/v1", PlaylistPalWeb do
-    pipe_through [:browser, :spotify]
-
-    get "/sign-up", SignUpController, :sign_up
-    get "/authenticate", SignUpController, :authenticate
-
-
-  end
+#
+#  scope "/v1", PlaylistPalWeb do
+#    pipe_through [:browser, :spotify]
+#
+#
+#
+#  end
 
   scope "/v1", PlaylistPalWeb do
     pipe_through [:api]
 
+    get "/sign-up", SignUpController, :sign_up
+    get "/authenticate", SignUpController, :authenticate
     post "/login-token", SignUpController, :login_token
   end
 

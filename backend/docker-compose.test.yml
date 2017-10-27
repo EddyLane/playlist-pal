@@ -1,8 +1,5 @@
 version: '3'
 
-volumes:
-  _build:
-
 services:
 
   elixir_test_watch:
@@ -17,7 +14,7 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - .:/app
-      - _build:/app/_build
+      - /app/_build
     ports:
       - 4000
     links:
@@ -28,7 +25,7 @@ services:
       - ../secrets/secrets.env
 
   postgres_test:
-    image: postgres:9.5
+    image: postgres:9.6
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres

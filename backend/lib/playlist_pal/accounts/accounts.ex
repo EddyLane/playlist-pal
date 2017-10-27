@@ -3,6 +3,9 @@ defmodule PlaylistPal.Accounts do
   @moduledoc """
   The Accounts context.
   """
+
+  @spotify Application.get_env(:playlist_pal, :spotify_api)
+
   import Ecto.Query, warn: false
 
   alias PlaylistPal.Repo
@@ -53,7 +56,7 @@ defmodule PlaylistPal.Accounts do
       )
     )
 
-    add_spotify_profile_fields_to_user(user)
+    #add_spotify_profile_fields_to_user(user)
   end
 
 
@@ -125,7 +128,8 @@ defmodule PlaylistPal.Accounts do
       |> User.changeset(attrs)
       |> Repo.insert()
 
-      add_spotify_profile_fields_to_user(user)
+    user
+      #add_spotify_profile_fields_to_user(user)
   end
 
   defp user_params(%Profile{} = profile, %Credentials{} = credentials) do

@@ -3,4 +3,6 @@ defmodule PlaylistPal.Spotify do
 
   @callback authenticate(String.t) :: {:ok, %Spotify.Credentials{}}
 
+  @callback profile(String.t) :: {:ok, %Spotify.Profile{}}
+
 end
